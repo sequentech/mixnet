@@ -1,0 +1,104 @@
+
+A:link {text-decoration: none; color: #222299;}
+A:visited {text-decoration: none; color: #992222;}
+A:active {text-decoration: none; color: #992222;}
+A:hover {text-decoration: underline; color: #222299;}
+
+
+body
+{
+    max-width: 700px;
+    font-family: arial, verdana, helvetica, sans-serif;
+    background-color: white;
+    color: black;
+    margin: 1em 4em 0em 5em;
+    font-size: 100%
+}
+
+p
+{
+    margin-left: 0em;
+    margin-right: 0em;
+}
+
+
+table
+{
+	font-size: 10pt
+}
+
+code
+{
+	font-size: 10pt
+}
+
+h1
+{
+	font-family: helvetica, sans-serif;
+	text-align: left;
+	padding: 2pt 0pt 1pt 0pt;
+	margin: 1.0em 0 0;
+	text-decoration: none;
+	font-size: 18pt;
+	font-weight: bold;
+	color: black
+}
+
+h2
+{
+	font-family: helvetica, sans-serif;
+	text-align: left;
+	padding: 2pt 0pt 1pt 0pt;
+	margin: 1.0em 0 0;
+	text-decoration: none;
+	font-size: 14pt;
+	font-weight: bold;
+	color: black
+}
+
+h3
+{
+	font-family: helvetica, sans-serif;
+	text-align: left;
+	padding: 2pt 0pt 1pt 0pt;
+	margin: 1.0em 0 0;
+	text-decoration: none;
+	font-size: 12pt;
+	font-weight: bold;
+	color: black
+}
+
+h4
+{
+	font-family: helvetica, sans-serif;
+	padding: 0pt 20pt 0pt 0pt;
+	margin: 0em 0 0 0;
+	text-decoration: none;
+	font-size: 12pt;
+	font-weight: bold;
+	color: black;
+}
+
+h5
+{
+	font-family: helvetica, sans-serif;
+	text-align: left
+	padding: 0pt 0pt 0pt 0pt;
+	margin: 0 0 0 -15pt;
+}
+
+li
+{
+	margin-bottom: 0.5em;
+	margin-right: 5em
+}
+
+
+hr
+{
+    height: 4;
+    color: black;
+    color: black;
+    background-color: black;
+
+}

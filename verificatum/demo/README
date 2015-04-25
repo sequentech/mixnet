@@ -1,0 +1,9 @@
+
+
+       DEMO INSTRUCTIONS
+
+The script run_all_demos run demonstrators for several
+subprotocols. These subprotocols are meant to be invoked by a larger
+protocol, which is why there are special demo classes that can be used
+to invoke them. The demo class simply sets up the parameters needed
+for the subprotocol to be executed.

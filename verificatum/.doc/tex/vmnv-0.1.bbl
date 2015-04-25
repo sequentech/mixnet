@@ -1,0 +1,63 @@
+\begin{thebibliography}{10}
+
+\bibitem{BeGaRa}
+M.~Bellare, J.~Garay, and T.~Rabin.
+\newblock Batch verification with applications to cryptography and checking.
+\newblock In {\em LATIN}, volume 1380 of {\em Lecture Notes in Computer
+  Science}, pages 170--191. Springer Verlag, 1998.
+
+\bibitem{elgamal}
+T.~El~Gamal.
+\newblock A public key cryptosystem and a signature scheme based on discrete
+  logarithms.
+\newblock {\em IEEE Transactions on Information Theory}, 31(4):469--472, 1985.
+
+\bibitem{feld}
+P.~Feldman.
+\newblock A practical scheme for non-interactive verifiable secret sharing.
+\newblock In {\em 28th IEEE Symposium on Foundations of Computer Science
+  (FOCS)}, pages 427--438. IEEE Computer Society Press, 1987.
+
+\bibitem{gennaro}
+R.~Gennaro, S.~Jarecki, H.~Krawczyk, and T.~Rabin.
+\newblock Secure distributed key generation for discrete-log based
+  cryptosystems.
+\newblock {\em J. Cryptology}, 20(1):51--83, 2007.
+
+\bibitem{sha}
+N.~I. of~Standards and T.~(NIST).
+\newblock Secure hash standard.
+\newblock Federal Information Processing Standards Publication 180-2, 2002.
+\newblock \url{http://csrc.nist.gov/}.
+
+\bibitem{saki}
+K.~Sako and J.~Kilian.
+\newblock Reciept-free mix-type voting scheme.
+\newblock In {\em Advances in Cryptology -- Eurocrypt '95}, volume 921 of {\em
+  Lecture Notes in Computer Science}, pages 393--403. Springer Verlag, 1995.
+
+\bibitem{TW10}
+B.~Terelius and D.~Wikstr{\"o}m.
+\newblock Proofs of restricted shuffles.
+\newblock In {\em Africacrypt 2010}, volume 6055 of {\em Lecture Notes in
+  Computer Science}, pages 100--113, 2010.
+
+\bibitem{wik09b}
+D.~Wikstr{\"o}m.
+\newblock A commitment-consistent proof of a shuffle.
+\newblock In {\em ACISP}, volume 5594 of {\em Lecture Notes in Computer
+  Science}, pages 407--421. Springer Verlag, 2009.
+
+\bibitem{vmnum}
+D.~Wikstr{\"o}m.
+\newblock User manual for the {V}erificatum mix-net.
+\newblock Manuscript, 2011.
+\newblock Available at \url{http://www.verificatum.org}.
+
+\bibitem{vmn}
+D.~Wikstr{\"o}m.
+\newblock The {V}erificatum mix-net.
+\newblock Manuscript, 2011.
+\newblock In preparation.
+
+\end{thebibliography}

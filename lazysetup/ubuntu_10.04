@@ -1,0 +1,72 @@
+# Script for Ubuntu 10.04.
+
+# This is a do-it-all installation script. Untouched it installs every
+# possible extension of the Verificatum library, including the
+# packages and libraries it requires. Edit it to your needs.
+
+# Install building tools.
+sudo apt-get install libtool m4
+
+# Install Java6.
+sudo add-apt-repository "deb http://archive.canonical.com/ lucid partner"
+sudo apt-get update
+sudo apt-get install sun-java6-jdk
+
+# Install GMP
+if [ ! -e /usr/local/lib/libgmp.a ]
+then
+
+    wget ftp://ftp.gmplib.org/pub/gmp-5.0.2/gmp-5.0.2.tar.gz
+    tar xvfz gmp-5.0.2.tar.gz
+    cd gmp-5.0.2
+
+    # Normal configure
+    ./configure
+    make
+    make check
+
+    # Tune GMP to run as fast as possible.
+    cd tune/
+    make tune
+    cd -
+  
+    # Make a new clean tuned build.
+    make clean
+    ./configure
+    make
+    make check
+
+    sudo make install
+
+    rm -rf gmp-5.0.2 gmp-5.0.2.tar.gz
+
+fi
+
+# Configure with all possible options.
+./configure --enable-jgmpmee --enable-jecn
+
+# Make corresponding installation script.
+make .verificatum_env
+source .verificatum_env
+
+# Copy environment script and let .bashrc source it.
+cp .verificatum_env ~/
+echo "" >> ~/.bashrc
+echo "# Added by verificatum"
+echo "source ~/.verificatum_env" >> ~/.bashrc
+
+# Make and install Verificatum
+make
+sudo make install
+
+# Initialize random source.
+vog -rndinit RandomDevice /dev/urandom
+
+# Instruct user to run demo.
+echo ""
+echo "You may now run the mix-net demo in the verificatum/demo/mixnet"
+echo "subdirectory by executing the following commands."
+echo ""
+echo "     source ~/.verificatum_env; cd verificatum/demo/mixnet";
+echo "     ./demo"
+echo ""

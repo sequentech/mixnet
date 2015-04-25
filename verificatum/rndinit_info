@@ -1,0 +1,5 @@
+Before you can use Verificatum you need to initialize the random
+source. Read more by executing "vog -h" or simply use the standard
+secure source of randomness in Un*x:
+
+    vog -rndinit RandomDevice /dev/urandom

@@ -1,0 +1,52 @@
+\begin{nicebox}
+  \begin{protocol}[Commitment-Consistent Proof of a Shuffle]$\quad$\label{prot:ccpos}\\
+    \textbf{Common Input.} Generators $g,h_0,\ldots,h_{N-1}\in\Gq$,
+    Pedersen commitments $u_0,\ldots,u_{N-1}\in\Gq$, a public key
+    $\pk$, elements $w_0,\ldots,w_{N-1}\in\CSpace$ and
+    $w_0',\ldots,w_{N-1}'\in\CSpace$.
+
+    \textbf{Private Input.} Exponents
+    $r=(r_0,\ldots,r_{N-1})\in\zedq^N$, a permutation
+    $\pi\in\permset{N}$, and exponents $s=(s_0,\ldots,s_{N-1})\in\RSpace^N$ such
+    that $u_i=g^{r_{\pi(i)}}h_{\pi(i)}$ and
+    $w_i'=\Enc_{\pk}(1,s_{\pi^{-1}(i)})w_{\pi^{-1}(i)}$ for $i=0,\ldots,N-1$.
+
+  \begin{enumerate}
+
+  \item $\V$ chooses a seed $s\in\{0,1\}^{\secp}$ randomly, defines
+    $e\in\INT{\secpe}^N$ as $e=\PRG(s)$, hands $s$ to $\P$ and
+    computes
+    \begin{align*}
+      A=\prod_{i=0}^{N-1}u_i^{e_i}\enspace.
+    \end{align*}
+
+  \item $\P$ chooses $\alpha\in\zedq$,
+    $\epsilon_0,\ldots,\epsilon_{N-1}\in\INT{\secpe+\secpv+\secpr}$,
+    and $\beta\in\RSpace$ randomly and computes
+    \begin{align*}
+      A'=g^{\alpha}\prod\nolimits_{i=0}^{N-1}h_i^{\epsilon_i}
+      \quad\text{and}\quad B'=\Enc_{\pk}(1,-\beta)\prod\nolimits_{i=0}^{N-1}(w_i')^{\epsilon_i}\enspace.
+    \end{align*}
+    Then it hands $(A',B')$ to $\V$.
+
+  \item $\V$ chooses $v\in\INT{\secpv}$ randomly and hands $v$ to $\P$.
+
+  \item Let $e_i'=e_{\pi^{-1}(i)}$. $\P$ computes $a=\langle
+    r,e'\rangle$, $b=\langle s,e\rangle$, and
+    \begin{align*}
+      k_A=va+\alpha\enspace,\quad
+      k_{B}=vb+\beta \enspace,\quad\text{and}\quad
+      k_{E,i}=ve_i'+\epsilon_i\enspace\text{for $i=0,\ldots,N-1$}\enspace.
+    \end{align*}
+    Then it hands $(k_A,k_B,k_E)$ to $\V$.
+
+  \item $\V$ computes $B=\prod\nolimits_{i=0}^{N-1}w_i^{e_i}$
+    and accepts if and only if
+    \begin{align*}
+      A^vA'&=g^{k_A}\prod\nolimits_{i=0}^{N-1}h_i^{k_{E,i}}
+      &B^vB'&=\Enc_{\pk}(1,-k_{B})\prod\nolimits_{i=0}^{N-1}(w_i')^{k_{E,i}}\\
+    \end{align*}
+
+  \end{enumerate}
+\end{protocol}
+\end{nicebox}

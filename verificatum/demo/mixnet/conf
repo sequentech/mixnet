@@ -1,0 +1,253 @@
+
+# Copyright 2008 2009 2010 Douglas Wikstrom
+
+# This file is part of Verificatum.
+
+# Verificatum is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+
+# Verificatum is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+
+# You should have received a copy of the GNU Lesser General Public
+# License along with Verificatum.  If not, see
+# <http://www.gnu.org/licenses/>.
+
+###########################################################################
+############# Configuration parameters below this line. ###################
+###########################################################################
+
+# Number of mix-servers used in the demonstration. If you specify
+# remote servers, you must make sure that this matches your number of
+# servers.
+NO_MIXSERVERS=3
+
+# Number of parties needed to violate privacy. This must be an integer
+# between 1 and $NO_MIXSERVERS.
+THRESHOLD=2
+
+# Default directory where the demonstration takes place. This
+# directory is created if it does not exist.
+DEFAULT_PREFIX=mydemodir
+
+# If you comment out DEFAULT_PREFIX you may define a separate prefix
+# for each server. Make sure that the number of definitions match
+# NO_MIXSERVERS above.
+#PREFIX_1=mydemodir1
+#PREFIX_2=mydemodir2
+#PREFIX_3=mydemodir3
+
+# If you are running the demonstration with the same user and remote
+# host for all mix-servers, then you can enter your username and
+# hostname here. If these variables are defined, then they take
+# precedence over any manually defined variables below. If you try
+# this with your own server (remotely, but actually locally), remember
+# to look for the prefixed party directories in the root of your home
+# directory and not in the current working directory.
+#DEFAULT_USERNAME=dog
+#DEFAULT_HOSTNAME=fast.homeunix.org
+
+# If you comment out the default variables above, then you may define
+# a particular username and hostname for each mix-server to
+# demonstrate. Make sure that the number of entries match the
+# NO_MIXSERVERS-variable above and that the above default values are
+# commented out. For this to work you need to enable passwordless
+# login (see the README-file).
+#MIXSERVER_HOSTS_1=fast.homeunix.org
+#USERNAME_1=dog
+#MIXSERVER_HOSTS_2=pitbull.csc.kth.se
+#USERNAME_2=dog
+#MIXSERVER_HOSTS_3=hall.gmplib.org
+#USERNAME_3=dog
+
+# If you set this to a positive value, precomputation will be
+# performed for the given number of ciphertexts. If you set it to
+# zero, then no precomputation takes place.
+#MAX_NO_CIPHERTEXTS=100
+MAX_NO_CIPHERTEXTS=0
+
+# Actual number of ciphertexts. If You may define this to be smaller
+# than MAX_NO_CIPHERTEXTS, or arbitrarily if you set it to zero.
+#NO_CIPHERTEXTS=${MAX_NO_CIPHERTEXTS}
+NO_CIPHERTEXTS=100
+
+# Type of group:
+#
+# "fixed"    gives the squares modulo a safe prime modulus. There is an
+#            implicit upper bound on the bitsize in this case and the
+#            prime is fetched from a precomputed table. Use this
+#            alternative when trying other things, since it is fast.
+#
+# "rand_sg"  gives a random group defined as a subgroup of prime order
+#            q of the multiplicative group modulo a prime of the form
+#            kq+1 with q prime and k small (k is roughly 1000). Define
+#            OBIT_SIZE to control the size of the subgroup (see below).
+#
+# "rand_ro"  gives a random group defined as a subgroup of order q of
+#            the multiplicative group modulo a prime of the form kq+1
+#            with q prime and k big. In this case large arbitrary
+#            messages can not be embedded in the subgroup. Thus, a
+#            special random encoding is used, but for this only very
+#            short messages can be embedded. Using this option, the
+#            encrypted messages are: A,B,...Z,a,b,...,z. Define
+#            OBIT_SIZE to control the size of the subgroup (see below).
+#
+# "explicit" allows you to specify any group you like. Make sure to
+#            define the variable PGROUP in this case, e.g.,
+#
+#            PGROUP=$(cat my_safeprime_onfile.txt)
+#            PGROUP=$(vog -gen ModPGroup -fixed 1024)
+#            PGROUP=$(vog -gen JECPGroup -name "prime256v1")
+#
+#            To get the full list of possible groups you can use the
+#            following command:
+#
+#            vog -gen PGroup -h
+#
+#            The file group_descriptions contains some useful groups.
+#
+
+PGROUP_TYPE=fixed
+#PGROUP_TYPE=rand_sg
+#PGROUP_TYPE=rand_ro
+
+# Security parameter of the group. Do not use a smaller group than
+# 512.
+BIT_SIZE=1024
+
+# If you are using rand_sg or rand_ro, you may define OBIT_SIZE as the
+# logarithm of the number of elements you want in your
+# group. Otherwise this variable is ignored. If you leave it empty, it
+# defaults to BIT_SIZE-8 and BIT_SIZE-100 respectively. Note that
+# using rand_sg, you need OBIT_SIZE > BIT_SIZE-10.
+OBIT_SIZE=$(( $BIT_SIZE - 5 ))
+#OBIT_SIZE=512
+
+# Uncomment suitable lines to use your own explicit group. Make sure
+# that you use a compatible encoding scheme.
+#PGROUP_TYPE=explicit
+#. ./group_descriptions
+#PGROUP=$ModPGroup_1024_256
+#PGROUP=$(vog -gen JECPGroup -name "prime256v1")
+
+# Use interactive proofs or non-interactive proofs in the ROM.
+#CORRECTNESS=interactive
+CORRECTNESS=noninteractive
+
+# The number of ciphertexts shuffled in parallel. If you use this
+# option you can look at the plaintexts and see that they grow in size
+# depending on the width.
+WIDTH=1
+
+# Choose the interface to the mix-net. Use "raw" for the internal
+# format of Verificatum where the public key is a byte tree, and the
+# input and output are byte tree representations of arrays of group
+# elements. Use "native" for a format where the the byte tree
+# representation of the public key is converted to a hexadecimal
+# string, and the input is a newline-separated file of hexadecimal
+# encoded byte trees of ciphertexts, and the output is a newline
+# separated list of strings decoded from the plaintext group elements
+# according to the decoding algorithm of the underlying group.  Use
+# "helios" for the Helios <http://www.heliosvoting.org> format where
+# JSON encoding is used for the public key, ciphertexts, and
+# plaintexts. It currently only works when a modular group is used
+# (ModPGroup) with width 1. Use "tvs" for the interface of the
+# Trustworthy Voting Systems (TVS) <http://www.tvsproject.org>.
+INTER=native
+#INTER=raw
+#INTER=helios
+#INTER=tvs
+
+# Determines the collision-resistant hashfunction used to implement
+# the Cramer-Shoup CCA2-secure cryptosystem and the Cramer-Shoup
+# signature scheme. STANDARD gives SHA-256. Provable gives the
+# Merkle-Damgaard construction based on the Pedersen hashfunction (see
+# info_files for more details).
+#HASH=PROVABLE
+HASH=STANDARD
+
+# Determines the signature scheme used to implement the distributed
+# bulletin board. STANDARD gives RSA-signatures based on
+# SHA-256. PROVABLE gives provably secure Cramer-Shoup signatures
+# based on the hashfunction configured above (see info_files for more
+# details).
+#SIG=PROVABLE
+SIG=STANDARD
+
+# Determines the PRG used to derive "random" vectors used for
+# batching. You can use SHA-256, SHA-384, or SHA-512, or an instance
+# of verificatum.crypto.PRG.
+#PRG=$(vog -gen PRGElGamal -fixed 2048)
+PRG=SHA-256
+
+# Determines the sources of randomness used during the protocol
+# execution.
+#RAND=$(vog -gen PRGElGamal -fixed 2048)
+#RAND=$(vog -gen PRGHeuristic)
+RAND=$(vog -gen RandomDevice /dev/urandom)
+
+# Keep arrays in RAM or on file. The memory requirements of the second
+# option is independent of the number of ciphertexts
+ARRAYS=ram
+#ARRAYS=file
+
+
+###########################################################################
+########### You should probably not change anything below this line #######
+###########################################################################
+
+# Offsets from which port numbers are derived. If you are running
+# multiple instances of the demo on the same machine, then they need
+# to use different offsets to allow all servers to run their HTTP and
+# hint servers.
+HINTOFFSET=4040
+HTTPOFFSET=8040
+
+# Name of a file that can be sourced to set up all environment
+# variables needed to run the programs. A file with this name must be
+# present on each server on which a server is to be executed during
+# remote demonstrations. When you installed Verificatum, a suitable
+# file was generated.
+SETUP_ENV='. ~/.verificatum_env'
+
+# Name of file, which after completion of the demo, contains the real
+# running time (in seconds) of the complete key generation phase,
+# precomputation phase, and mixing phase separated by space. The
+# time for generating the demo ciphertexts is not output.
+#
+# Please be careful to extrapolate running times for larger number of
+# ciphertexts, since a few minutes of the running time is independent
+# of the number of ciphertexts.
+TIME_FILE=timings_of_demo_secs
+
+# Name of executable version of the standard Un*x date program.
+DATE_BIN=/bin/date
+
+# Name of file on which the joint key is written.
+KEY_DESTINATION=publicKey
+
+# Name of file on which commands are written. This file is copied to a
+# remote host and executed.
+TMP_COMMAND=./tmp_command
+TMP_FILE=./tmp_file
+
+# The terminal program used to emulate each party. If you need to run
+# the demo remotely without an X server, you can set this to
+# vterm. The logging of all parties then end up in your login
+# terminal.
+# alias term=./vterm
+alias term=xterm
+
+# Keep the xterm-windows open for this time at the end of execution,
+# e.g., set it to 60 to see any potential error messages from the JVM
+# for one minute when debugging.
+SLEEPTIME=0
+
+# Source macros. The definitions of these depend on the values of some
+# of the above variables. Make sure that this file always ends with
+# the line below.
+. ./macros

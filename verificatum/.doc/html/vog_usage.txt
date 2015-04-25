@@ -1,0 +1,65 @@
+Usage: 
+vog -h
+vog -list [-pkgs <names>] [<classname>]
+vog -gen [-pkgs <names>] <classname> [<parameters>]
+vog -tem <shellcmd>
+vog -rndinit [-seed <file>] <classname> [<parameters>]
+vog -version
+
+
+Description:
+
+This command provides a uniform interface to all objects that can be 
+generated and used in initialization files of protocols or as inputs to 
+other calls to this tool, e.g., cryptographic keys, collision-free 
+hashfunctions, etc.
+
+The two most important options are: "-list" which lists, for a given class, 
+all its sub-classes/interfaces, and "-gen" which invokes the generator of 
+the given class. For such a class the option "-h" should give a usage 
+description. For example, the following describes the possible ways of 
+generating groups of squares modulo a safe prime.
+
+   vog -gen ModPGroup -h
+
+Some classes requires an instance of another class as input. Using shell-
+quoting it is possible to write any such invokation as a single shell 
+command. In Bash you can quote with "$(" and ")" and generate a instance of 
+Pedersen's collision-free hashfunction as follows.
+
+   vog -gen HashfunctionPedersen -width 2 \
+                           "$(vog -gen ModPGroup -fixed 2048)"
+
+The "-rndinit" option can only be used once. It initializes the source of 
+randomness used by this tool in all future invokations. If this option has 
+not been used at all, then the calls that needs a random source complains, 
+but all other calls complete without errors. The following, which uses the 
+Un*x standard /dev/urandom as a source of bits, is usually a reasonable 
+default, but please make sure that this is the case on your platform before 
+you use this.
+
+   vog -rndinit RandomDevice /dev/urandom
+
+Some usage examples:
+   vog -list PRG                        # Sub-classes/interfaces of PRG.
+   vog -gen PRGHeuristic                # SHA-2 with counter.
+   vog -gen ModPGroup -fixed 1024       # Squares modulo safe prime.
+
+Parameters:
+   <classname>    - Name of class that allows generation.
+   <parameters>   - Parameters of generator of class named <classname>.
+   <shellcmd>     - Shell command turned into template.
+
+Options:
+      -gen          - Invoke generator of class <classname>.
+        -h          - Print usage information.
+     -list          - List subclasses of class <classname> with descriptions.
+     -pkgs <names>  - Packages searched. Given as a colon-separated list of 
+                      full class names; one class/interface contained in each 
+                      package to be searched.
+  -rndinit          - Initialize the random source used by this command.
+     -seed <file>   - File containing truly random bits (master seed).
+      -tem          - Make a template for the given parameters, i.e., a shell 
+                      command (only for debugging).
+  -version          - Print package version.
+

@@ -1,0 +1,78 @@
+\begin{align*}
+&\PRG(\Hashfunction(\leaf{\code{"SHA-256}"}))\\
+&\textrm{Seed (32 bytes):}\\
+&\hex{000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f}\\
+&\textrm{Expansion (128 bytes):}\\
+&\hex{70f4003d52b6eb03da852e93256b5986b5d4883098bb7973bc5318cc66637a84}\\
+&\hex{04a6950a06d3e3308ad7d3606ef810eb124e3943404ca746a12c51c7bf776839}\\
+&\hex{0f8d842ac9cb62349779a7537a78327d545aaeb33b2d42c7d1dc3680a4b23628}\\
+&\hex{627e9db8ad47bfe76dbe653d03d2c0a35999ed28a5023924150d72508668d244}
+\end{align*}
+\begin{align*}
+&\PRG(\Hashfunction(\leaf{\code{"SHA-384}"}))\\
+&\textrm{Seed (48 bytes):}\\
+&\hex{000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f}\\
+&\hex{202122232425262728292a2b2c2d2e2f}\\
+&\textrm{Expansion (128 bytes):}\\
+&\hex{e45ac6c0cafff343b268d4cbd773328413672a764df99ab823b53074d94152bd}\\
+&\hex{27fc38bcffdb7c1dc1b6a3656b2d4819352c482da40aad3b37f333c7afa81a92}\\
+&\hex{b7b54551f3009efa4bdb8937492c5afca1b141c99159b4f0f819977a4e10eb51}\\
+&\hex{61edd4b1734717de4106f9c184a17a9b5ee61a4399dd755f322f5d707a581cc1}
+\end{align*}
+\begin{align*}
+&\PRG(\Hashfunction(\leaf{\code{"SHA-512}"}))\\
+&\textrm{Seed (64 bytes):}\\
+&\hex{000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f}\\
+&\hex{202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f}\\
+&\textrm{Expansion (128 bytes):}\\
+&\hex{979043771043f4f8e0a2a19b1fbfbe5a8f076c2b5ac003e0b9619e0c45faf767}\\
+&\hex{47295734980602ec1d8d3cd249c165b7db62c976cb9075e35d94197c0f06e1f3}\\
+&\hex{97a45017c508401d375ad0fa856da3dfed20847716755c6b03163aec2d9f43eb}\\
+&\hex{c2904f6e2cf60d3b7637f656145a2d32a6029fbda96361e1b8090c9712a48938}
+\end{align*}
+\begin{align*}
+&\RandomOracle(\Hashfunction(\leaf{\code{"SHA-256}"}),65)\\
+&\textrm{Input (32 bytes):}\\
+&\hex{000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f}\\
+&\textrm{Output (9 bytes of which the last 65 bits may be non-zero):}\\
+&\hex{001a8d6b6f65899ba5}
+\end{align*}
+\begin{align*}
+&\RandomOracle(\Hashfunction(\leaf{\code{"SHA-256}"}),261)\\
+&\textrm{Input (32 bytes):}\\
+&\hex{000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f}\\
+&\textrm{Output (33 bytes of which the last 261 bits may be non-zero):}\\
+&\hex{1c04f57d5f5856824bca3af0ca466e283593bfc556ae2e9f4829c7ba8eb76db8}\\
+&\hex{78}
+\end{align*}
+\begin{align*}
+&\RandomOracle(\Hashfunction(\leaf{\code{"SHA-384}"}),93)\\
+&\textrm{Input (32 bytes):}\\
+&\hex{000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f}\\
+&\textrm{Output (12 bytes of which the last 93 bits may be non-zero):}\\
+&\hex{04713a5e22935833d436d1db}
+\end{align*}
+\begin{align*}
+&\RandomOracle(\Hashfunction(\leaf{\code{"SHA-384}"}),411)\\
+&\textrm{Input (32 bytes):}\\
+&\hex{000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f}\\
+&\textrm{Output (52 bytes of which the last 411 bits may be non-zero):}\\
+&\hex{00dc086c320e38b92722a9c0f87f2f5de81b976400e2441da542d1c3f3f391e4}\\
+&\hex{1d6bcd8297c541c2431a7272491f496b622266aa}
+\end{align*}
+\begin{align*}
+&\RandomOracle(\Hashfunction(\leaf{\code{"SHA-512}"}),111)\\
+&\textrm{Input (32 bytes):}\\
+&\hex{000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f}\\
+&\textrm{Output (14 bytes of which the last 111 bits may be non-zero):}\\
+&\hex{28d742c34b97367eb968a3f28b6c}
+\end{align*}
+\begin{align*}
+&\RandomOracle(\Hashfunction(\leaf{\code{"SHA-512}"}),579)\\
+&\textrm{Input (32 bytes):}\\
+&\hex{000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f}\\
+&\textrm{Output (73 bytes of which the last 579 bits may be non-zero):}\\
+&\hex{00a6f79b8450fef79af71005c0b1028c9f025f322f1485c2b245f658fe641d47}\\
+&\hex{dcbb4fe829e030b52e4a81ca35466ad1ca9be6feccb451e7289af318ddc9dae0}\\
+&\hex{98a5475d6119ff6fe0}
+\end{align*}

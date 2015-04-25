@@ -1,0 +1,94 @@
+\section{Byte Trees}\label{sect:bytetrees}
+
+We use a byte-oriented format to represent objects on file and to turn
+them into arrays of bytes that can be input to a hash function. The
+goal of this format is to be as simple as possible.
+
+\subsection{Definition}
+
+A byte tree is either a \emph{leaf} containing an array of bytes, or a
+\emph{node} containing other byte trees. We write \leaf{$d$} for a
+leaf with a byte array $d$ and we write \node{$b_1,\ldots,b_l$} for a
+node with children $b_1,\ldots,b_l$. Complex byte trees are then easy
+to describe.
+
+\begin{example}\label{exam:bytetree}
+  The byte tree containing the data \hex{AF}, \hex{03E1}, and
+  \hex{2D52} (written in hexadecimal) in three leaves, where the first
+  two leaves are siblings is
+\begin{align*}
+  \node{\node{\leaf{\hex{AF}}, \leaf{\hex{03E1}}}, \leaf{\hex{2D52}}}\enspace.
+\end{align*}
+\end{example}
+
+\subsection{Representation as an Array of Bytes}
+
+We use $\nbytes{k}{n}$ as a short-hand to denote the two's-complement
+representation of $n$ in big endian byte order truncated to the $k$
+least significant bytes. We also use hexadecimal notation for
+constants, e.g., $\hex{0A}$ means $\nbytes{1}{10}$.
+
+A byte tree is represented as an array of bytes as follows.
+\begin{itemize}
+
+\item A leaf $\leaf{d}$ is represented as the concatenation of: a
+  single byte $\hex{01}$ to indicate that it is a leaf, four bytes
+  $\nbytes{4}{l}$, where $l$ is the number of bytes in $d$, and the
+  data bytes $d$.
+
+\item A node $\node{b_1,\ldots,b_l}$ is represented as the
+  concatenation of: a single byte \hex{00} to indicate that it is a
+  node, four bytes $\nbytes{4}{l}$ representing the number of
+  children, and $\bytes{b_1}\mid\bytes{b_2}\mid\cdots\mid\bytes{b_l}$,
+  where $\mid$ denotes concatenation and $\bytes{b_i}$ denotes the
+  representation of the byte tree $b_i$ as an array of bytes.
+
+\end{itemize}
+
+\begin{example}[\exam{bytetree} contd.]
+  The byte tree is represented as the following array of bytes.
+  \begin{align*}
+    &\hex{00\cutt00\cut00\cut00\cut02}\\
+    &\quad\hex{00\cutt00\cut00\cut00\cut02}\\
+    &\quad\quad\hex{01\cutt00\cut00\cut00\cut01\cutt AF}\\
+    &\quad\quad\hex{01\cutt00\cut00\cut00\cut02\cutt03\cut E1}\\
+    &\quad\hex{01\cutt00\cut00\cut00\cut02\cutt 2D\cut 52}
+  \end{align*}
+\end{example}
+
+
+It is a good idea to hand (an upper bound of) the expected recursive
+depth to a parser to let it fail in a controlled way if the input does
+not represent a valid byte tree.
+
+ASCII strings are converted to byte trees in the
+natural way, i.e., a string $s$ (an array of bytes) is converted to
+$\leaf{s}$.
+\begin{example}
+  The string $\code{"ABCD"}$ is represented by $\leaf{\hex{65666768}}$.
+\end{example}
+Sometimes we store byte trees as the hexadecimal encoding of their
+representation as an array of bytes. We denote by $\tohex{a}$ the
+hexadecimal encoding of an array of bytes. We abuse notation and
+simply write $a$ instead of $\bytes{a}$ when the context is clear,
+e.g., if $\hash$ is a hash function we write $\hash(a)$ instead of
+$\hash(\bytes{a})$.
+
+\subsection{Backus-Naur Grammar.}
+
+The above description should suffice to implement a parser for byte
+trees, but for completeness we give their Backus-Naur grammar. We
+denote the $n$-fold repetition of a symbol
+$\langle\textit{rule}\rangle$ by $n\langle\textit{rule}\rangle$. The
+grammar then consists of the following rules for
+$n=0,\ldots,2^{31}-1$, where $\mid$ denotes choice.
+\begin{align*}
+  \langle\textit{bytetree}\rangle&::=\langle\textit{leaf}\rangle\mid\langle\textit{node}\rangle\\
+  \langle\textit{leaf}\rangle&::=\hex{01}\langle\textit{uint}_n\rangle\langle\textit{data}_n\rangle\\
+  \langle\textit{node}\rangle&::=\hex{00}\langle\textit{uint}_n\rangle\langle\textit{bytetrees}_n\rangle\\
+  \langle \textit{uint}_n\rangle&::=\nbytes{4}{n}\\
+  \langle \textit{data}_n\rangle&::=n\langle\textit{byte}\rangle\\
+  \langle\textit{bytetrees}_n\rangle&::=n\langle\textit{bytetree}\rangle\\
+  \langle \textit{byte}\rangle&::=\hex{00}\mid \hex{01}\mid
+  \hex{02}\mid\cdots\mid \hex{FF}
+\end{align*}

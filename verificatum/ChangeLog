@@ -1,0 +1,9 @@
+
+2009-06-23  Douglas Wikström  <dog@csc.kth.se>
+
+	* Version 0.1 released.
+
+2010-05-14  Douglas Wikström  <dog@csc.kth.se>
+
+	* ChangeLog: We use mercurial to keep track of changes from now
+	on.

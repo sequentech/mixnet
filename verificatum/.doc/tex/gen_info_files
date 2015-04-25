@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# Copyright 2008 2009 Douglas Wikström
+
+# This file is part of Verificatum Source Code (Verificatum).
+
+# Verificatum is NOT free software. You should have received a copy of
+# the Source Code For Internal Review License Agreement along with
+# Verificatum. If not, see <http://www.verificatum.com/license/>.
+
+# Verificatum is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the Source
+# Code For Internal Review License Agreement for more details.
+
+DESTINATION=$1
+
+vmni -prot \
+-sid "SID" \
+-name "Swedish Election" \
+-nopart 3 \
+-thres 2 \
+-maxciph 10000 \
+-pgroup "$(vog -gen ModPGroup -fixed 512)" \
+${DESTINATION}/stub.xml
+
+for i in 1 2 3
+do
+    vmni -party -name "Party$i" -hint mybox$i.mydomain$i.com:4040 -http http://mybox$i.mydomain$i.com:8080 ${DESTINATION}/stub.xml ${DESTINATION}/privInfo$i.xml ${DESTINATION}/protInfo$i.xml
+done
+
+vmni -merge ${DESTINATION}/protInfo*.xml ${DESTINATION}/protInfo.xml

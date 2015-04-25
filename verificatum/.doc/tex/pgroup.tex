@@ -1,0 +1,105 @@
+\item\textbf{Modular Group.} A subgroup $\Gq$ of order $\q$ of the
+  multiplicative group $\zed_{\p}^*$, where $\p>3$ is prime, with
+  standard generator $\g$ is represented by the byte tree
+  $\node{\bt{\p},\bt{\q},\bt{\g},\nbytes{4}{e}}$, where the integer
+  $e\in\{0,1,2\}$ determines how a string is encoded into a group
+  element. We denote by $\ModPGroup(b)$ the group recovered from such
+  a byte tree $b$.
+
+  We may only have $e=1$ if $\p=2\q+1$, and we may only have $e=2$ if
+  $\p=t\q+1$ and the difference between the bit lengths of $\p$ and
+  $\q$ is less than $2^{10}$.
+
+  The three encoding schemes are defined as follows.
+  \begin{itemize}
+
+  \item If $e=0$, then at most 3 bytes can be encoded. Let $\hash$
+    denote SHA-256.
+
+    \begin{description}
+
+    \item[Encode.] To encode a sequence $\mess$ of $0\leq
+      b_{\mess}\leq3$ bytes into an element $a$, find an element
+      $a\in\Gq$ such that the first $b_{\mess}+1$ bytes of
+      $\hash(\bt{a})$ are of the form $\nbytes{1}{l}\mid\mess$ for
+      some $l$ such that $l\bmod 4=b_{\mess}$.
+
+    \item[Decode.] To decode an element $a\in\Gq$ into a message
+      $\mess$, let $\nbytes{1}{l'}$ be the first byte of
+      $\hash(\bt{a})$ and define $l=l'\bmod4$. Then let $\mess$ be the
+      next $l$ bytes of $\hash(\bt{a})$.
+
+    \end{description}
+
+  \item If $e=1$, then at most $b=\lfloor(\secp-2)/8\rfloor-4$ bytes
+    can be encoded, where $\secp$ is the bit length of $\p$.
+    \begin{description}
+
+    \item[Encode.] To encode a sequence $\mess$ of $0\leq
+      b_{\mess}\leq b$ bytes as an element $a\in\Gq$ do as follows.
+      If $b_{\mess}=0$, then set $\mess'=\hex{01}\mid\nbytes{b-1}{0}$
+      and otherwise set
+      $\mess'=\mess\mid\nbytes{b-b_{\mess}}{0}$. Then interpret
+      $\nbytes{4}{b_{\mess}}\mid\mess'$ as a positive integer
+      $k$. Then let $a$ be $k$ or $\p-k$ so that $a\in\Gq$.
+
+    \item[Decode.] To decode an element $a\in\Gq$ to a message
+      $\mess$, set $k$ equal to $a$ or $\p-a$ depending on if $a<\p-a$
+      or not. Then interpret $k\bmod 2^{8(b+4)}$ as
+      $\nbytes{4}{l}\mid\mess'$, where $\mess'$ is a sequence of $b$
+      bytes. If $l<0$ or $l>b$, then set $l=0$. Then let $\mess$ be the
+      $l$ first bytes of $\mess'$.
+
+    \end{description}
+
+  \item If $e=2$, then at most $b=\lfloor\secp/8\rfloor-\secp'-4$
+    bytes can be encoded, where $\secp$ is the bit length of $\p$ and
+    $\secp'=\lceil t/8\rceil+1$.
+    \begin{description}
+
+    \item[Encode.] To encode a sequence $\mess$ of $0\leq
+      b_{\mess}\leq b$ bytes as an element $a\in\Gq$, interpret
+      $\nbytes{4}{b_{\mess}}\mid\mess\mid\nbytes{b-b_{\mess}}{0}$ as
+      an integer $k$. Then let $a$ be the smallest integer of the form
+      $i2^{8(b+4)}+k$ in $\Gq$ for some non-negative $i$.
+
+    \item[Decode.] To decode an element $a\in\Gq$ to a message
+      $\mess$, interpret $a\bmod 2^{8(b+4)}$ as
+      $\nbytes{4}{l}\mid\mess'$, where $\mess'$ is a sequence of $b$
+      bytes. If $l<0$ or $l>b$, then set $l=0$. Then let $\mess$ be the
+      $l$ first bytes of $\mess'$
+
+    \end{description}
+
+  \end{itemize}
+
+\item\textbf{Element of Modular Group.} An element $a\in\Gq$, where
+  $\Gq$ is a subgroup of order $\q$ of $\zed_{\p}^*$ for a prime $\p$
+  is represented by $\leaf{\nbytes{k}{a}}$, where $a$ is identified
+  with its integer representative in $[0,\p-1]$ and $k$ is the
+  smallest integer such that $\p$ can be represented as
+  $\nbytes{k}{\p}$.
+
+  \begin{example}
+    Let $\Gq$ be the subgroup of order $\q=131$ in
+    $\zed_{263}^*$. Then $258\in\Gq$ is represented by
+    \hex{01\cutt00\cut00\cut00\cut02\cutt01\cut02}.
+  \end{example}
+
+\item\textbf{Array of Group Elements.} An array $(a_1,\ldots,a_l)$ of
+  group elements is represented as $\node{\bt{a_1},\ldots,\bt{a_l}}$,
+  where $\bt{a_i}$ is the byte tree representation of $a_i$.
+
+\item\textbf{Product Group Element.} An element $a=(a_1,\ldots,a_l)$
+  in a product group is represented by
+  $\node{\bt{a_1},\ldots,\bt{a_l}}$, where $\bt{a_i}$ is the byte tree
+  representation of $a_i$. This is similar to the representation of
+  product rings.
+
+\item\textbf{Array of Product Group Elements.} An array
+  $(a_1,\ldots,a_l)$ of elements in a product group, where
+  $a_i=(a_{i,1},\ldots,a_{i,k})$, is represented by
+  $\node{\bt{b_1},\ldots,\bt{b_k}}$, where $b_i$ is the array
+  $(a_{1,i},\ldots,a_{l,i})$ and $\bt{b_i}$ is its representation as a
+  byte tree. This is similar to the representation of arrays of
+  elements in a product ring.

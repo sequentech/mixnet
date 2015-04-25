@@ -1,0 +1,1658 @@
+% Copyright 2008 2009 2010 2011 Douglas Wikstrom
+
+% This file is part of Verificatum.
+
+% Verificatum is free software: you can redistribute it and/or modify
+% it under the terms of the GNU Lesser General Public License as
+% published by the Free Software Foundation, either version 3 of the
+% License, or (at your option) any later version.
+
+% Verificatum is distributed in the hope that it will be useful, but
+% WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+% Lesser General Public License for more details.
+
+% You should have received a copy of the GNU Lesser General Public
+% License along with Verificatum.  If not, see
+% <http://www.gnu.org/licenses/>.
+
+\documentclass[11pt]{article}
+\usepackage{vtm}
+%\usepackage{tex4ht}
+
+% For not wasting space in submission
+\addtolength{\voffset}{-1.5cm}
+\addtolength{\textheight}{3cm}
+
+\addtolength{\hoffset}{-1cm}
+\addtolength{\textwidth}{2.0cm}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\title{{\Huge DRAFT}\\$\quad$\\How to Implement a Stand-alone Verifier \\for the Verificatum Mix-Net}
+
+\author{Douglas Wikstr{\"o}m\\
+KTH Stockholm, Sweden\\
+\texttt{dog@csc.kth.se}}
+
+% \author{Douglas Wikstr{\"o}m}
+% \institute{
+%  CSC KTH Stockholm, Sweden\\
+%   \email{dog@csc.kth.se}
+% }
+
+
+\pagestyle{empty}
+
+\begin{document}
+
+%\Configure{$}{\PicMath}{\EndPicMath}{}
+
+
+\maketitle
+
+\thispagestyle{empty}
+
+\begin{abstract}
+
+  Verificatum, \url{http://www.verificatum.org}, is a free and open
+  source implementation of an El Gamal based mix-net which optionally
+  uses the Fiat-Shamir heuristic to produce a universally verifiable
+  proof of correctness during the execution of the protocol. This
+  document gives a detailed description of this proof targeting
+  implementers of stand-alone verifiers.
+
+\end{abstract}
+
+\begin{quote}
+
+\subsection*{Protocol Version 0.1}
+
+This document covers version 0.1 of the protocol. The Verificatum
+package version is independent of the protocol version.
+
+
+\vfill
+
+\subsection*{Help Us Improve This Document}
+
+This document is a draft. The most recent version of this
+document can be found at:
+\url{http://www.verificatum.org/verificatum/vmnv-0.1.pdf}.
+
+Please help us improve the quality of this document by reporting
+errors, omissions, and suggestions to
+\texttt{dog@csc.kth.se}.
+
+
+\end{quote}
+
+\newpage
+
+\begin{spacing}{0.9}
+
+  \tableofcontents
+
+\end{spacing}
+
+\clearpage
+
+\pagestyle{plain}
+\setcounter{page}{1}
+
+
+\section{Introduction}\label{sect:introduction}
+
+The \veri mix-net~\cite{vmn} can optionally be executed with
+Fiat-Shamir proofs of correctness, i.e., non-interactive
+zero-knowledge proofs in the random oracle model. These proofs end up
+in a special \emph{proof directory} along with all intermediate
+results published on the bulletin board during the execution. The
+proofs and the intermediate results allows anybody to verify the
+correctness of an execution as a whole, i.e., that the joint public
+key, the input ciphertexts, and the output plaintexts are related as
+defined by the protocol and the public parameters of the
+execution. The goal of this document is to give a detailed description
+of how to implement a stand-alone algorithm for verifying the complete
+contents of the proof directory.
+
+
+\section{Background}
+
+Before we delve into the details of how to implement a verifier, we
+recall the \elgamal cryptosystem and briefly describe the mix-net
+implemented in \veri (in the case where the Fiat-Shamir heuristic is
+used to construct non-interactive zero-knowledge proofs).
+
+\subsection{The \elgamal~Cryptosystem}\label{sect:elgamal}
+
+The \elgamal cryptosystem~\cite{elgamal} is defined over a group $\Gq$
+of prime order $\q$. A secret key $\x\in\zedq$ is sampled randomly,
+and a corresponding public key $(\g,\y)$ is defined by $\y=\g^{\x}$,
+where $\g$ is (typically) the standard generator in the underlying
+group $\Gq$. To encrypt a plaintext $\mess\in\Gq$, a random exponent
+$\sand\in\zedq$ is chosen and the ciphertext is computed as
+$\Enc_{(\g,\y)}(\mess,s)=(\g^{\sand},\y^{\sand}\mess)$. A plaintext
+can then be recovered from a ciphertext $(\uciph,\vciph)$ as
+$\Dec_{\x}(\uciph,\vciph)=\uciph^{-\x}\vciph=\mess$. To encrypt an
+arbitrary string of bounded length $t$ we also need an injection
+$\{0,1\}^{t}\to\Gq$, which can be efficiently computed and inverted.
+
+\paragraph{Homomorphic.}
+
+The cryptosystem is homomorphic, i.e., if
+$(\uciphi{1},\vciphi{1})=\Enc_{(\g,\y)}(\messi{1},\sandi{1})$ and
+$(\uciphi{2},\vciphi{2})=\Enc_{(\g,\y)}(\messi{2},\sandi{2})$ are two
+ciphertexts, then their element-wise product
+$(\uciphi{1}\uciphi{2},\vciphi{1}\vciphi{2})=\Enc_{(\g,\y)}(\messi{1}\messi{2},\sandi{1}+\sandi{2})$
+is an encryption of $\messi{1}\messi{2}$. If we set $\messi{2}=1$,
+then this feature can be used to \emph{re-encrypt} a ciphertext
+without knowledge of the randomness used to form
+$(\uciphi{1},\vciphi{1})$. To see this, note that for every fixed
+$\sandi{1}$ and random $\sandi{2}$, $\sandi{1}+\sandi{2}$ is randomly
+distributed in $\zedq$.
+
+\paragraph{Distributed Key Generation.}
+
+The \elgamal cryptosystem also allows efficient protocols for
+distributed key generation and distributed decryption of ciphertexts
+by $\Mk$ parties. The $l$th party generates its own secret key
+$\xj{l}$ and defines a (partial) public key $\yj{l}=\g^{\xj{l}}$. In
+addition to this, the parties jointly run a protocol that verifiably
+secret shares the secret key $\xj{l}$ such that a threshold $\thres$
+of the parties can recover it in the event that the $l$th party fails
+to do its part correctly in the joint decryption of ciphertexts. The
+details \cite{feld,gennaro} of the verifiable secret sharing scheme
+are not important in this document. The joint public key is then
+defined as $(\g,\y)$, where $\y=\prod_{l=1}^{\Mk}\yj{l}$. Note that
+the corresponding secret key is defined by
+$\x=\sum_{l=1}^{\Mk}\xj{l}$.
+
+To jointly decrypt a ciphertext $(\uciph,\vciph)$, the $l$th party
+publishes a \emph{partial} decryption factor $\decrfactj{l}$ computed
+as $\PDec_{\xj{l}}(\uciph,\vciph)=\uciph^{\xj{l}}$ and proves using a
+zero-knowledge proof that it computed the decryption factor correctly
+relative to its public key $\yj{l}$. If the proof is rejected, then
+the other parties recover the secret key $\xj{l}$ of the $l$th party
+and perform its part of the joint decryption in the open. Then the
+decryption factors can be combined to a joint decryption factor
+$\decrfact=\prod_{l=1}^{\Mk}\decrfactj{l}$ such that
+$\PDec_{\x}(\uciph,\vciph)=\decrfact$. The ciphertext can then be
+trivially decrypted as
+$\TDec((\uciph,\vciph),\decrfact)=\vciph/\decrfact=m$.
+
+\paragraph{A Generalization and Useful Notation.}
+
+Using a simple hybrid argument it is easy to see that a longer
+plaintext $\mess=(\messi{1},\ldots,\messi{t})\in\Gq^t$ can be
+encrypted by encrypting each component independently, as
+$\big(\Enc_{(\g,\y)}(\messi{1},\sandi{1}),\ldots,\Enc_{(\g,\y)}(\messi{t},\sandi{t})\big)$
+where $\sand=(\sandi{1},\ldots,\sandi{t})$ is an element of the
+product ring $\RSpace=\zedq^t$ or randomizers.
+
+In our setting it is more convenient to simply view the cryptosystem
+as defined for elements in the product group $\MSpace=\Gq^t$ of
+plaintexts directly, i.e., we define encryption as
+$\Enc_{(\g,\y)}(\mess,\sand)=(\g^{\sand},\y^{\sand}\mess)$, where
+$\sand$ is an element in the product ring $\RSpace=\zedq^t$. Thus, the
+ciphertext belongs to the ciphertext space
+$\CSpace=\MSpace\times\MSpace$. Here exponentiation is distributed
+element-wise, e.g.,
+$\g^{\sand}=(\g^{\sandi{1}},\ldots,\g^{\sandi{t}})$ and multiplication
+is defined element-wise. Decryption and computation of decryption
+factors can be defined similarly.
+
+We remark that the \veri mix-net is based on this generalization of
+the \elgamal cryptosystem. Perhaps future versions of this document
+will describe this general setting, but in the current version we
+focus on the basic case where the randomizer ring is $\RSpace=\zedq$,
+the group of plaintexts is $\MSpace=\Gq$, and the group of ciphertexts
+is $\CSpace=\MSpace\times\MSpace=\Gq\times\Gq$.
+
+
+\subsection{A Mix-Net Based on the \elgamal~Cryptosystem}\label{sect:mixnet}
+
+We use the re-encryption approach of Sako and Kilian~\cite{saki}
+combined with the pre-computation technique in
+Wikstr{\"o}m~\cite{wik09b} and the proof of a shuffle of Terelius and
+Wikstr{\"o}m~\cite{TW10}. The choice of proof of a shuffle is mainly
+motivated by the fact that all other efficient proofs of shuffles are
+patented. We use the batching technique of Bellare et
+al.~\cite{BeGaRa} to speed up the proofs needed during distributed
+decryption.
+
+The $\Mk$ mix-servers first run a distributed key generation protocol
+such that for each $1\leq l\leq\Mk$, the $l$th mix-server has a public
+key $\yj{l}$ and a corresponding secret key $\xj{l}\in\zedq$ which is
+verifiably secret shared among all $\Mk$ mix-servers such that any set
+of $\thres$ parties can recover $\xj{l}$, but no smaller subset learns
+anything about $\xj{l}$. Then they define a joint public key
+$(\g,\y)$, where $\y=\prod_{l=1}^{\Mk}\yj{l}$, to be used by senders.
+
+There are $\PN$ senders. The $i$th sender encrypts its message
+$\messi{i}\in\MSpace$ by picking $\sandi{i}\in\RSpace$ randomly and
+computing a ciphertext
+$\ciphji{0}{i}=\Enc_{(\g,\y)}(\messi{i},\sandi{i})$. To preserve
+privacy, the sender must also prove that it knows the plaintext
+$\messi{i}$ of its ciphertext. This can be ensured in different ways,
+but it is of no concern in this document, since we only verify the
+\emph{correctness} of an execution (and not privacy).
+
+Recall that a non-interactive proof allows a prover to convince a
+verifier that a given statement is true by sending a single
+message. The verifier then either accepts the proof as valid or
+rejects it as invalid. In this context a proof is said to be
+zero-knowledge if, loosely, it does not reveal anything about the
+witness of the statement known by the prover.
+
+The mix-servers now form a list
+$\List{0}=(\ciphji{0}{i})_{i\in[1,\PN]}$ of all the ciphertexts. Then
+the $j$th mix-server proceeds as follows for $l=1,\ldots,\thres$:
+\begin{itemize}
+
+\item If $l=j$, then it re-encrypts each ciphertext in $\List{l-1}$,
+  permutes the result and publishes this as $\List{l}$. More
+  precisely, it chooses $\randji{l}{i}\in\RSpace$ and a permutation
+  $\perm$ randomly and outputs
+  $\List{l}=(\ciphji{l}{i})_{i\in[1,\PN]}$, where
+  \begin{align}
+    \ciphji{l}{i}=\ciphji{l-1}{\perm(i)}\Enc_{(\g,\y)}(1,\randji{l}{\perm(i)})\enspace.\label{eq:reencrypt}
+  \end{align}
+  Then it publishes a non-interactive zero-knowledge proof of
+  knowledge $(\proofC{l},\proofR{l})$ of all the
+  $\randji{l}{i}\in\zedq$ and that they satisfy (\ref{eq:reencrypt}).
+
+\item If $l\neq j$, then it waits until the $l$th mix-server publishes
+  $\List{l}$ and a non-interactive zero-knowledge proof of knowledge
+  $(\proofC{l},\proofR{l})$. If the proof is rejected, then $\List{l}$
+  is set equal to $\List{l-1}$.
+
+\end{itemize}
+
+Finally, the mix-servers jointly decrypt the ciphertexts in
+$\List{\thres}$ as described in \sect{elgamal}. More precisely, the
+$l$th mix-server computes
+$\decrfactj{l}=\PDec_{\xj{l}}(\List{\thres})$ element-wise and gives a
+non-interactive zero-knowledge proof $(\dproofC{l},\dproofR{l})$ that
+$\decrfactj{l}$ was computed correctly. If the proof is rejected, then
+$\xj{l}$ is recovered using the verifiable secret sharing scheme and
+$\decrfactj{l}=\PDec_{\xj{l}}(\List{\thres})$ is computed in the
+open. Then the output of the mix-net is computed as
+$\TDec(\List{\thres},\prod_{l=1}^{\Mk}\decrfactj{l})$, where the
+product and $\TDec(\cdot,\cdot)$ are taken element-wise.
+
+
+\subsection{Outline of the Verification Algorithm}\label{sect:outlineverify}
+
+We give a brief outline of the verification algorithm that checks that
+intermediate results of an execution and all the zero-knowledge proofs
+are consistent.
+
+\begin{enumerate}
+
+\item Check that the partial public keys are consistent with the
+  public key used by senders to encrypt their messages, i.e., check
+  that $\y=\prod_{l=1}^{\Mk}\yj{l}$. If not, then \reject.
+
+\item Check that each mix-server re-encrypted and permuted the
+  ciphertexts in its input or was ignored in the processing, i.e., for
+  $l=1,\ldots,\thres$:
+  \begin{itemize}
+
+  \item If $(\proofC{l},\proofR{l})$ is not a valid proof of knowledge
+    of exponents $\randji{l}{i}$ and a permutation $\perm$ such that
+    $\ciphji{l}{i}=\ciphji{l-1}{\perm(i)}\Enc_{(\g,\y)}(1,\randji{l}{\perm(i)})$,
+    then set $\List{l}=\List{l-1}$.
+
+  \end{itemize}
+
+\item Check that each party computed its decryption factors correctly
+  or its secret key was recovered and its decryption factors computed
+  openly, i.e., check that for $l=1,\ldots,\Mk$:
+  \begin{itemize}
+
+  \item If $\xj{l}$ was recovered such that $\yj{l}=g^{\xj{l}}$, then
+    set $\decrfactj{l}=\PDec_{\xj{l}}(\List{l})$.
+
+  \item Otherwise, if $(\dproofC{l},\dproofR{l})$ is not a valid proof
+    that $\decrfactj{l}=\PDec_{\xj{l}}(\List{l})$ and
+    $\yj{l}=\g^{\xj{l}}$, where $\decrfactj{l}$ are the decryption
+    factors computed by the $l$th mix-server, then \reject.
+
+  \end{itemize}
+
+\item Check if the output of the mix-net is
+  $\TDec(\List{\thres},\prod_{l=1}^{\Mk}\decrfactj{l})$. If not, then
+  \reject and otherwise \accept.
+
+\end{enumerate}
+
+\paragraph{On the Use of Pre-computation in \veri.}
+
+To speed up the mixing process, the \veri mix-net allows most of the
+computations to be done before any ciphertexts have been received. To
+achieve this, an upper bound $\PNmax$ on the number of ciphertexts is
+established and then the ciphertexts $\Enc_{(\g,\y)}(1,\randji{l}{i})$
+are pre-computed. This turns costly exponentiations into cheap
+multiplications in the mixing phase. Furthermore, the non-interactive
+proof of knowledge $(\proofC{l},\proofR{l})$ is split into a
+commitment $\permcommj{l}$ of a permutation $\perm$ of $\PNmax$
+elements, a proof of a shuffle of commitments
+$(\posproofC{l},\posproofR{l})$ that this was formed correctly, and a
+commitment-consistent proof of knowledge
+$(\ccposproofC{l},\ccposproofR{l})$ of the exponents $\randji{l}{i}$
+such that (\ref{eq:reencrypt}) holds. In other words, we may think of
+the complete proof of a shuffle as
+\begin{align*}
+  (\proofC{l},\proofR{l})=\big((\permcommj{l},\posproofC{l},\ccposproofC{l}),(\posproofR{l},\ccposproofR{l})\big)\enspace.
+\end{align*}
+Only the proof $(\ccposproofC{l},\ccposproofR{l})$ is computed (or
+verified by the other mix-servers) in the mixing phase, and this is
+very efficient compared to the first part of the proof.
+
+If the actual number $\PN$ of ciphertexts is smaller than $\PNmax$,
+then the permutation commitment $\permcommj{l}$ is ``shrunk'' before
+it is used. To do this, the prover simply identifies a suitable subset
+of size $\PN$ of the elements of $\permcommj{l}$ (see \sect{verify}
+for details).
+
+We remark that when $\PNmax$ equals the actual number of ciphertexts
+$\PN$, then the overhead cost of dividing the work in this way instead
+of having single proof is small compared to the cost of a single
+combined proof.
+
+
+\section{How to Write a Verifier}
+
+As explained in \sect{mixnet}, an execution of the mix-net is correct
+if: (1) the joint public key used by senders to encrypt their messages
+is consistent with the partial keys of the mix-servers, (2) the joint
+public key was used to re-encrypt and permute the input ciphertexts,
+and (3) the secret keys corresponding to the partial keys were used to
+compute decryption factors. To turn the outline of the verification
+algorithm in \sect{outlineverify} into an actual verification
+algorithm, we must specify: all the parameters of the execution, the
+representations of all arithmetic objects, the zero-knowledge proofs,
+and how the Fiat-Shamir heuristic is applied.
+
+\subsection{List of Manageable Sub-Tasks}
+
+We divide the problem into a number of more manageable sub-tasks and
+indicate which steps depend on previous steps to simplify the
+distribution of the implementation work.
+
+\begin{enumerate}
+
+\item\label{step:bytetree}\textbf{Byte Trees.} All of the mathematical
+  and cryptographic objects are represented as so called \emph{byte
+    trees}. \sect{bytetrees} describes this simple and
+  language-independent byte-oriented format.
+
+\item\label{step:primitives}\textbf{Cryptographic Primitives.} We need
+  concrete implementations of hash functions, pseudo-random generators,
+  and random oracles, and we must define how these objects are
+  represented. This is described in \sect{primitives}.
+
+\item\label{step:arithmetic}\textbf{Arithmetic Library.} An arithmetic
+  library is needed to compute with algebraic objects, e.g., group
+  elements and field elements. These objects also need to be converted
+  to and from their representations as byte trees. \sect{arithmetic}
+  describes how this is done.
+
+\item\label{step:infofile}\textbf{Protocol Info Files.}  Some of
+  the public parameters, e.g., auxiliary security parameters, must be
+  extracted from an XML encoded protocol info file before any
+  verification can take place. \sect{infofiles} describes the format
+  of this file and which parameters are extracted.
+
+\item\label{step:basicverify}\textbf{Verifying Fiat-Shamir Proofs.}
+  The tests performed during verification are quite
+  complex. \sect{basicverify} explains how to implement these tests.
+
+\item\label{step:verify}\textbf{Verification of a Complete Execution.}
+  \sect{verify} combines all of the above steps into a single
+  verification algorithm.
+
+\end{enumerate}
+
+\subsection{How to Divide the Work}
+
+\step{bytetree} does not depend on any other step. \step{primitives}
+and \step{arithmetic} are independent from the other steps except for
+how objects are encoded to and from their representation as byte
+trees. \step{infofile} can be divided into the problem of parsing an
+XML file and then interpreting the data stored in each XML block. The
+first part is independent of all other steps, and the second part
+depends on \step{bytetree}, \step{primitives} and
+\step{arithmetic}. \step{basicverify} depends on \step{bytetree},
+\step{primitives}, and \step{arithmetic}, but not on \step{infofile},
+and it may internally be divided into separate tasks. \step{verify}
+depends on all previous steps.
+
+
+\input{bytetree}
+
+\section{Cryptographic Primitives}\label{sect:primitives}
+
+For our cryptographic library we need hash functions, pseudo-random
+generators, and random oracles derived from these. We must also define
+their functionality.
+
+\subsection{Hash Functions}\label{sect:hashfunctions}
+
+\veri allows an arbitrary hash function to be used, but in this
+document we restrict our attention to the SHA-2 family \cite{sha},
+i.e., SHA-256, SHA-384, and SHA-512. Before the winner of the SHA-3
+competition has been announced, we see no reason to use any other
+cryptographic hash function to instantiate the random oracle model. We
+use the following notation.
+\begin{itemize}
+
+% \item $\bt{\hash}$ denotes the byte tree representation\footnote{It
+%     may seem overly complicated to, e.g., use a byte tree
+%     representation of the string \code{"SHA-256"} to configure the
+%     mix-net to use this hash function, but \veri can be configured
+%     with hash functions that cannot be represented as short strings.}
+%   of a hash function $\hash$. This is defined as one of the byte trees
+%   $\leaf{\code{"SHA-256"}}$, $\leaf{\code{"SHA-384"}}$, or
+%   $\leaf{\code{"SHA-512"}}$ depending on which hash function is
+%   represented.
+
+% \item$\Hashfunction(\bt{\hash})$ -- Creates a hash function $\hash$
+%   from its byte tree representation $\bt{\hash}$.
+
+\item$\Hashfunction(s)$ -- Creates a hashfunction from
+  \code{"SHA-256"}, \code{"SHA-384"}, or \code{"SHA-512"}.
+
+\item$\hash(d)$ -- Denotes the hash digest of the byte array $d$.
+
+\item$\outlen{\hash}$ -- Denotes the number of bits in the output of
+  the hash function $\hash$.
+
+\end{itemize}
+
+% \begin{example}
+%   If $\hash=\Hashfunction(\leaf{\code{"SHA-256"}})$ and $d$ is a byte
+%   tree then $\hash(d)$ denotes the hash digest of the array of bytes
+%   representing the byte tree as computed by SHA-256, and
+%   $\outlen{\hash}$ equals $256$.
+% \end{example}
+
+\begin{example}
+  If $\hash=\Hashfunction(\code{"SHA-256"})$ and $d$ is a byte tree
+  then $\hash(d)$ denotes the hash digest of the array of bytes
+  representing the byte tree as computed by SHA-256, and
+  $\outlen{\hash}$ equals $256$.
+\end{example}
+
+\subsection{Pseudo-Random Generators}\label{sect:prg}
+
+We need a pseudo-random generator (PRG) to expand a short challenge
+string into a long ``random'' vector to use batching techniques in the
+zero-knowledge proofs of \sect{basicverify}. \veri allows any
+pseudo-random generator to be used, but in the random oracle model
+there is no need to use a provably secure PRG. We consider a simple
+construction based on a hash function $\hash$.
+
+The PRG takes a seed $s$ of $\secp_{\hash}=\outlen{\hash}$ bits
+as input. Then it generates a sequence of bytes $r_0\mid r_1\mid
+r_2\mid\cdots$, where $\mid$ denotes concatenation, and $r_i$ is an
+array of $\secp_{\hash}/8$ bytes defined by
+\begin{align*}
+  r_i=\hash(s\mid\nbytes{4}{i})
+\end{align*}
+for $i=0,1,\ldots,2^{31}-1$, i.e., in each iteration we hash the
+concatenation of the seed and an integer counter (four bytes). It is
+not hard to see that if $\hash(s\mid\cdot)$ is a pseudo-random
+function for a random choice of the seed, then this is a provably
+secure construction of a pseudo-random generator. We use the following
+notation.
+\begin{itemize}
+
+% \item $\bt{\prg}$ -- Denotes the byte tree representation of an
+%   instance $\prg$. This is simply defined as $\bt{\hash}$, i.e., the
+%   byte tree representation of the underlying hash function.
+
+% \item$\PRG(r)$ -- Creates an unseeded instance $\prg$ from its byte
+%   tree representation $\bt{\prg}$ or from a hash function $\hash$,
+%   i.e., $r$ is either of the form $\bt{\prg}$ or it is $\hash$.
+
+\item$\PRG(\hash)$ -- Creates an unseeded instance $\prg$ from a hash
+  function $\hash$.
+
+\item$\seedlen{\prg}$ -- Denotes the number of seed bits needed as
+  input by $\prg$.
+
+\item$\prg(s)$ -- Denotes an array of pseudo-random bytes derived from
+  the seed $s$. Strictly speaking this array is
+  $2^{31}\secp_{\hash}$ bits long, but we simply write
+  $(t_0,\ldots,t_l)=\prg(s)$, where $t_i$ is of a given bit length,
+  instead of explicitly saying that we iterate the construction a
+  suitable number of times and then truncate to the exact output
+  length we want.
+
+\end{itemize}
+
+
+\subsection{Random Oracles}\label{sect:randomoracle}
+
+We need a flexible random oracle that allows us to derive any number
+of bits. We use a construction based on a hash function $\hash$. To
+differentiate the random oracles with different output lengths, the
+output length is used as a prefix in the input to the hash
+function. The random oracle first constructs a pseudo-random generator
+$\prg=\PRG(\hash)$ which is used to expand the input to the requested
+number of bits. To evaluate the random oracle on input $d$ the random
+oracle then proceeds as follows, where $\secp_{\mathit{out}}$ is the
+output length in bits.
+\begin{enumerate}
+
+\item Compute $s=\hash(\nbytes{4}{\secp_{\mathit{out}}}\mid d)$, i.e.,
+  compress the concatenation of the output length and the actual data
+  to produce a seed $s$.
+
+\item Let $a$ be the $\lceil\secp_{\mathit{out}}/8\rceil$ first
+  bytes in the output of $\prg(s)$.
+
+\item Set the $8-(\secp_{\mathit{out}}\bmod 8)$ first bits of $a$ to
+  zero, and output the result.
+
+\end{enumerate}
+We remark that setting some of the first bits of the output to zero to
+emulate an output of arbitrary bit length is convenient in our
+setting, since it allows the outputs to be directly interpreted as
+random integers of a given (nominal) bit length.
+
+This construction is a secure implementation of a random oracle with
+output length $\secp_{\mathit{out}}$ for any $\secp_{\mathit{out}}\leq
+2^{31}\outlen{\hash}$ when $\hash$ is modeled as a random oracle and
+the PRG of \sect{prg} is used. Note that it is unlikely to be a secure
+implementation if a PRG is used which is provably secure under some
+computational assumption.
+
+There is no need to represent random oracles as byte trees. Thus, we
+only need the following notation:
+\begin{itemize}
+
+\item$\RandomOracle(\hash,\secp_{\mathit{out}})$ -- Creates a random
+  oracle with output length $\secp_{\mathit{out}}$ from the hash
+  function $\hash$.
+
+\item$\RO(d)$ -- Denotes the output of the random oracle $\RO$ on
+  an input byte array $d$.
+ 
+\end{itemize}
+
+\section{Representations of Arithmetic Objects}\label{sect:arithmetic}
+
+Every arithmetic object in \veri is represented as a byte tree. In
+this section we pin down the details of these representations.
+\begin{itemize}
+
+\item\textbf{Integers.} A multi-precision integer $n$ is represented
+  by $\leaf{\nbytes{k}{n}}$ for the smallest possible $k$.
+
+  \begin{example}
+    $263$ is represented by
+    \hex{01\cutt00\cut00\cut00\cut02\cutt01\cut07}.
+  \end{example}
+  \begin{example}
+    $-263$ is represented by
+    \hex{01\cutt00\cut00\cut00\cut02\cutt FE\cut F9}.
+  \end{example}
+
+\item\textbf{Arrays of Booleans.} An array $(a_1,\ldots,a_l)$ of
+  booleans is represented as $\leaf{b}$, where $b=(b_1,\ldots,b_l)$ is
+  an array of bytes where $b_i$ equals $\hex{01}$ if $a_i$ is true and
+  $\hex{00}$ otherwise.
+
+  \begin{example}
+    The array $(\True,\False,\True)$ is represented by
+    $\leaf{\hex{01\cut00\cut01}}$.
+  \end{example}
+  \begin{example}
+    The array $(\True,\True,\False)$ is represented by
+    $\leaf{\hex{01\cut01\cut00}}$.
+  \end{example}
+
+\item\textbf{Field Elements.} An element $a$ in a prime order field
+  $\zedq$ is represented by $\leaf{\nbytes{k}{a}}$, where $a$ is
+  identified with its integer representative in $[0,q-1]$ and $k$ is
+  the smallest possible $k$ such that $q$ can be represented as
+  $\nbytes{k}{q}$. In other words, field elements are represented
+  using fixed size byte trees, where the fixed size depends on the
+  order of the field.
+
+  \begin{example}
+    $258\in\zed_{263}$ is represented by
+    \hex{01\cutt00\cut00\cut00\cut02\cutt01\cut02}.
+  \end{example}
+  \begin{example}
+    $5\in\zed_{263}$ is represented by
+    \hex{01\cutt00\cut00\cut00\cut02\cutt00\cut05}.
+  \end{example}
+
+\item\textbf{Array of Field Elements.} An array $(a_1,\ldots,a_l)$ of
+  field elements is represented by $\node{\bt{a_1},\ldots,\bt{a_l}}$,
+  where $\bt{a_i}$ is the byte tree representation of $a_i$.
+
+  \begin{example}
+    The array $(1,2,3)$ of elements in $\zed_{263}$ is represented by:
+    \begin{align*}
+      &\hex{00\cutt00\cut00\cut00\cut03}\\
+      &\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut01}\\
+      &\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut02}\\
+      &\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut03}
+    \end{align*}
+  \end{example}
+
+\item\textbf{Product Ring Element.} An element $a=(a_1,\ldots,a_l)$ in
+  a product ring is represented by $\node{\bt{a_1},\ldots,\bt{a_l}}$,
+  where $\bt{a_i}$ is the byte tree representation of the component
+  $a_i$. Note that this representation keeps information about the
+  order in which a product group is formed intact (see the second
+  example below).
+
+  \begin{example}
+    The element $(258,5)\in\zed_{263}\times\zed_{263}$ is represented
+    by:
+    \begin{align*}
+      &\hex{00\cutt00\cut00\cut00\cut02}\\
+      &\quad\hex{01\cutt00\cut00\cut00\cut02\cutt01\cut02}\\
+      &\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut05}
+    \end{align*}
+  \end{example}
+  \begin{example}
+    The element
+    $((258,6),5)\in(\zed_{263}\times\zed_{263})\times\zed_{263}$ is
+    represented by:
+    \begin{align*}
+      &\hex{00\cutt00\cut00\cut00\cut02}\\
+      &\quad\hex{00\cutt00\cut00\cut00\cut02}\\
+      &\quad\quad\hex{01\cutt00\cut00\cut00\cut02\cutt01\cut02}\\
+      &\quad\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut06}\\
+      &\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut05}
+    \end{align*}
+  \end{example}
+
+\item\textbf{Array of Product Ring Elements.} An array
+  $(a_1,\ldots,a_l)$ of elements in a product ring, where
+  $a_i=(a_{i,1},\ldots,a_{i,k})$, is represented by
+  $\node{\bt{b_1},\ldots,\bt{b_k}}$, where $b_i$ is the array
+  $(a_{1,i},\ldots,a_{l,i})$ and $\bt{b_i}$ is its representation as a
+  byte tree.
+
+  Thus, the structure of the representation of an array of ring
+  elements mirrors the representation of a single ring element. This
+  seemingly contrived representation turns out to be convenient in
+  implementations.
+
+  \begin{example}
+    The array $\big((1,4),(2,5),(3,6)\big)$ of elements in
+    $\zed_{263}\times\zed_{263}$ is represented as
+    \begin{align*}
+      &\hex{00\cutt00\cut00\cut00\cut02}\\
+      &\quad\hex{00\cutt00\cut00\cut00\cut03}\\
+      &\quad\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut01}\\
+      &\quad\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut02}\\
+      &\quad\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut03}\\
+      &\quad\hex{00\cutt00\cut00\cut00\cut03}\\
+      &\quad\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut04}\\
+      &\quad\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut05}\\
+      &\quad\quad\hex{01\cutt00\cut00\cut00\cut02\cutt00\cut06}
+    \end{align*}
+  \end{example}
+
+\input{pgroup.tex}
+
+\end{itemize}
+
+
+\paragraph{Deriving Group Elements from Random Bits.}
+
+In \sect{independent} we need to derive group elements from the output
+of a pseudo-random generator $\prg$. (Strictly speaking we use $\prg$
+as a random oracle here, but this is secure due to how it is defined.)
+Exactly how this is done depends on the group and an auxiliary
+security parameter $\secpr$. We denote this by
+\begin{align*}
+  \h=(\hi{0},\ldots,\hi{\PNmax-1})=\random{\Gq}{\PNmax,\prg(s),\secpr}
+\end{align*}
+and describe how this is defined for each type of group below. The
+auxiliary security parameter determines the statistical distance in
+distribution between a randomly chosen group element and the element
+derived as explained below if we assume that the output of the PRG is
+truly random.
+
+We stress that it must be infeasible to find a non-trivial
+representation of the unit of the group in terms of these generators,
+i.e., it should be infeasible to find $e,e_0,\ldots,e_{\PNmax-1}$ not
+all zero such that $\g^{e}\prod_{i=0}^{\PNmax-1}\hi{i}^{e_i}=1$. In
+particular, it is not acceptable to derive exponents
+$x_0,\ldots,x_{\PNmax-1}\in\zedq$ and then define $\hi{i}=g^{x_i}$.
+
+\begin{itemize}
+
+\item\textbf{Modular Group.} Let $\Gq$ be the subgroup of order $\q$
+  of the multiplicative group $\zed_{\p}$, where $\p>3$ is prime. Then
+  an array $(\hi{0},\ldots,\hi{\PNmax-1})$ in $\Gq$ is derived as
+  follows from a seed $s$.
+  \begin{enumerate}
+
+  \item Let $\secp_{\p}$ be the bit length of $\p$.
+
+  \item Let $(t_0,\ldots,t_{\PNmax-1})=\prg(s)$, where
+    $t_i\in\{0,1\}^{8\lceil(\secp_{\p}+\secpr)/8\rceil}$ is
+    interpreted as a \emph{non-negative} integer.
+
+  \item Set $t_i'=t_i\bmod 2^{\secp_{\p}+\secpr}$ and let
+    $\hi{i}=(t_i')^{(\p-1)/\q}\bmod\p$.
+
+  \end{enumerate}
+  In other words, for each group element $\hi{i}$ we first extract the
+  minimum number of complete bytes
+  $\lceil(\secp_{\p}+\secpr)/8\rceil$.  Then we reduce the number of
+  bits to exactly $\secp_{\p}+\secpr$. Finally, we map the resulting
+  integer into $\Gq$ using the canonical homomorphism.\footnote{This
+    construction makes more sense if one considers an
+    implementation. It is natural to implement a routine that derives
+    an array of non-negative integers $t_i'$ of a given bit length
+    $\secp_{\p}+\secpr$ as explained above. Group elements are then
+    derived from such an array in the natural way by mapping the
+    integers into $\Gq$.}
+
+\end{itemize}
+
+
+\section{Marshalling Group Descriptions}
+\label{sect:unmarshal}
+
+When groups convert themselves to byte trees in \veri, they do not
+store the name of the Java class of which they are instances. Thus, to
+recover a group from such a representation, information about the
+class must be otherwise available. When we need to recover a group
+from file, we store not only its internal state, but also its Java
+class name. Then Java reflection is used to instantiate the right
+class with the given internal state. This gives a reasonably language
+independent format, since the names of classes can always be
+tabulated.
+
+%  The
+% details of the scheme is best explained by an example.
+% \begin{example}\label{exam:sha2}
+%   A wrapper of the SHA-2 family of hash functions is provided by the
+%   Java class \code{verificatum.crypto.HashfunctionHeuristic}. The
+%   internal state of an instance of this class simply consists of the
+%   name of the underlying algorithm, e.g., the string
+%   \code{"SHA-256"}. As explained in \sect{hashfunctions}, such an
+%   instance is converted to a byte tree $\leaf{\code{"SHA-256"}}$. The
+%   complete byte tree is then
+%   \begin{align*}
+%     \node{\leaf{\code{"verificatum.crypto.HashfunctionHeuristic"}},\leaf{\code{"SHA-256"}}}\enspace.
+%   \end{align*}
+% \end{example}
+% Fortunately, we need only parse byte trees of this more elaborate
+% types for a few of our classes. We have the following mapping of Java
+% class names and the notation used here.
+
+We use the following notation to marshal and unmarshal
+objects.
+\begin{itemize}
+
+\item $\marshal{a}$ -- Denotes
+  $\node{\leaf{\code{"JavaClassName"}},\bt{a}}$, where $a$ in the
+  execution of the \veri mix-net would be an instance of
+  \code{JavaClassName} and $\bt{a}$ is the byte tree representation of
+  $a$.
+
+\item $\unmarshal{b}$ -- Denotes the instance $a$ such that in an
+  execution of the \veri mix-net we would have $b=\marshal{a}$.
+
+\end{itemize}
+The group description stored in the protocol info file is represented
+by the hexadecimal encoding of its representations as an array of
+bytes prepended with a brief human oriented ASCII comment describing
+the group. The end of the comment is indicated by double colons. If
+$a$ is such an hexadecimal encoding, we simply write $\unmarshal{a}$
+and assume that the comment is removed before the string is decoded
+into an array of bytes, which in turn is decoded to a group.
+
+The notation used in this document for groups correspond to Java
+classes in \veri as follows.
+
+\vspace{0.3cm}
+\noindent
+\begin{tabular}{l|l}
+Notation & Java Classname in Verificatum\\
+\hline
+$\ModPGroup$ & \code{verificatum.arithm.ModPGroup}\\
+\end{tabular}
+
+
+% \begin{example}[\exam{sha2} contd.]
+%   The hexadecimal encoding of a hash function including a leading
+%   comment briefly describing the payload appears as follows.
+% \begin{lstlisting}[frame=single,language=xml,
+% basicstyle=\tt\xmlfontsize]
+% HashfunctionHeuristic(SHA-256)::0000000002010000002876657269666963617475
+% 6d2e63727970746f2e4861736866756e6374696f6e486575726973746963010000000753
+% 48412d323536
+% \end{lstlisting}
+% We can reformat the payload to emphasize its components:
+% \begin{align*}
+%   &\hex{00\cutt00\cut00\cut00\cut02}\\
+%   &\quad\hex{01\cutt00\cut00\cut00\cut28}\\
+%   &\quad\quad\hex{8766572696669636174756d2e63727970746f2e4861736866756e6374696}\\
+%   &\quad\quad\hex{f6e486575726973746963}\\
+%   &\quad\hex{01\cutt00\cut00\cut00\cut07\cutt5348412d323536}
+% \end{align*}
+% \end{example}
+
+
+
+
+\section{Protocol Info Files}\label{sect:infofiles}
+
+The protocol info file contains all the public parameters agreed on by
+the operators before the key generation phase of the mix-net is
+executed, and some of these parameters must be extracted to verify the
+correctness of an execution.
+
+\subsection{XML Grammar}\label{sect:xmlgrammar}
+
+A protocol info file uses a simple XML format and contains a single
+\xml{<protocol></protocol>} block. The preamble of this block contains
+a number of global parameters, e.g., the number $k$ of parties
+executing the protocol is given by a \xml{<nopart>$k$</nopart>} block,
+and the group over which the protocol is executed is defined by a
+\xml{<pgroup>\hex{123ABC}</pgroup>} block, where \hex{123ABC} is a
+hexadecimal encoding of a byte tree representing the group. After the
+global parameters follows one \xml{<party></party>} block for each
+party that takes part in the protocol, and each such block contains
+all the public information about that party, i.e., the name of a party
+is given by a \xml{<name></name>} block. The contents of the
+\xml{<party></party>} blocks are important during the execution of the
+protocol, but they are not used to verify the correctness of an
+execution and can be ignored.
+
+A parser of protocol info files must be implemented. If
+\code{protocolInfo.xml} is a protocol info file, then we denote by
+$p=\ProtocolInfo(\code{protocolInfo.xml})$ an object such that
+$\field{p}{b}$ is the data $d$ stored in a block \xml{<$b$>$d$</$b$>}
+in the preamble of the protocol info file, i.e., preceding any
+\xml{<party></party>} block. We stress that the data is stored as
+ASCII encoded strings.
+
+\listref{infofileskel} gives a skeleton example of a protocol info
+file, where $\hex{"123ABC"}$ is used as a placeholder for some
+hexadecimal rendition of an arithmetic or cryptographic
+object. \listref{exampleinfofile} in \app{exampleinfofile} contains a
+complete example of a protocol info file.
+
+\begin{lstlisting}[frame=single,language=xml,
+basicstyle=\tt\xmlfontsize,captionpos=b,
+float=h,
+caption={Skeleton of a protocol info file. There are no nested blocks within a \xml{<party></party>} block.},label=list:infofileskel]
+<protocol>
+
+   <name>Swedish Election</name>
+   <nopart>3</nopart>
+   <pgroup>123ABC</pgroup>
+   ...
+
+   <party>
+      <name>Party1</name>
+      <pubkey>123ABC</pubkey>
+      ...
+   </party>
+   ...
+</protocol>
+\end{lstlisting}
+
+\listref{protocolinfoschema} in \app{protocolinfoschema} contains the
+formal XML schema for protocol info files, but this is not really
+needed to implement a parser. In fact, to keep things simple, we do
+not use any attributes of XML tags, i.e., all values are stored as the
+data between an opening tag and a closing tag. The \code{vmni} command
+can be used to output the schema in electronic form~\cite{vmnum}.
+
+\subsection{Extracted Values}\label{sect:extracted}
+
+To interpret an ASCII string $s$ as an integer we simply write
+$\inte{s}$, e.g., $\inte{\code{"123"}}=123$. We let
+$p=\code{ProtocolInfo(protocolInfo.xml)}$ and define the values we
+later use in \sect{basicverify} and \sect{verify}.
+
+\begin{itemize}
+
+% \item $\mathrm{SID}=\field{p}{\code{sid}}$ is the globally unique session
+%   identifier.
+
+\item $\Mk=\inte{\field{p}{\code{nopart}}}$ specifies the number of parties.
+
+\item $\thres=\inte{\field{p}{\code{thres}}}$ specifies the number of
+  mix-servers that take part in the shuffling, i.e., this is the
+  threshold number of mix-servers that must be corrupted to break the
+  privacy of the senders.
+
+\item $\PNmax=\inte{\field{p}{\code{maxciph}}}$ specifies the
+  maximal number of ciphertexts (the actual number of ciphertexts is
+  later denoted by $\PN$). This is zero if no pre-computation for a
+  maximal number of ciphertexts took place before the mix-net was
+  executed.
+
+\item $\secpe=\inte{\field{p}{\code{vbitlenro}}}$ specifies the
+  number of bits in each component of random vectors used for batching
+  in proofs of shuffles and proofs of correct decryption.
+
+\item $\secpr=\inte{\field{p}{\code{statdist}}}$ specifies the
+  acceptable statistical error when sampling random values. The
+  precise meaning of this parameter is hard to describe. Loosely,
+  randomly chosen elements in the protocol are chosen with a
+  distribution at distance at most roughly $2^{-\secpr}$ from uniform.
+
+\item $\secpv=\inte{\field{p}{\code{cbitlenro}}}$ specifies the
+  number of bits used in the challenge of the verifier in
+  zero-knowledge proofs, i.e., in our Fiat-Shamir proofs it is the bit
+  length of outputs from the random oracle $\RO_v$ defined in
+  \sect{randomoracle}.
+
+% \item $\hash=\unmarshal{\field{p}{\code{rohash}}}$ specifies the
+%   hash function used to implement the random oracles.
+
+% \item $\prg=\unmarshal{\field{p}{\code{prg}}}$ specifies the
+%   pseudo-random generator used to expand challenges into arrays.
+
+\item $\hash=\Hashfunction(\field{p}{\code{rohash}})$ specifies the
+  hash function used to implement the random oracles.
+
+\item $\prg=\PRG\big(\Hashfunction(\field{p}{\code{prg}})\big)$ specifies the
+  pseudo-random generator used to expand challenges into arrays.
+
+\item $\Gq=\unmarshal{\field{p}{\code{pgroup}}}$ specifies the
+  underlying group.
+
+\end{itemize}
+
+
+
+
+\section{Verifying Fiat-Shamir Proofs}\label{sect:basicverify}
+
+We use three different Fiat-Shamir proofs: a proof of a shuffle of
+Pedersen commitments, a commitment-consistent proof of a shuffle of
+ciphertexts, and a proof of correct decryption factors. We simply
+write $\bt{a}$ for the byte tree representation of an object $a$.
+
+\subsection{Random Oracles}
+
+Throughout this section we use the following two random oracles
+constructed from the hash function $\hash$, the minimum number
+$\secps=\seedlen{\prg}$ of seed bits required by the pseudo-random
+generator $\prg$, and the auxiliary security parameter $\secpv$.
+\begin{itemize}
+
+\item $\RO_s=\RandomOracle(\hash,\secps)$ is the random oracle used
+  to generate seeds to $\prg$.
+
+\item $\RO_v=\RandomOracle(\hash,\secpv)$ is the random oracle used
+  to generate challenges.
+
+\end{itemize}
+
+
+\subsection{Independent Generators}\label{sect:independent}
+
+The protocols in \sect{pos} and \sect{ccpos} also require
+``independent'' generators and these generators must be derived using
+the random oracles. To do that a seed
+\begin{align*}
+  s=\RO_s(\rho\mid\leaf{\code{"generators"}})
+\end{align*}
+is computed by hashing a prefix $\rho$ derived from the protocol file
+and a string specifying the intended use of the ``independent''
+generators. Then the generators are defined by
+\begin{align*}
+  \h=(\hi{0},\ldots,\hi{\PNmax-1})=\random{\Gq}{\PNmax,\prg(s),\secpr}\enspace,
+\end{align*}
+which is defined in \sect{arithmetic}. The prefix $\rho$ is computed
+in \step{roprefix} of the main verification routine in
+\sect{verifyalg} and given as input to \algo{pos}, \algo{ccpos}, and
+\algo{decrypt} below. It is essentially a hash digest of the contents
+of the protocol info file. In particular this means that the
+``independent'' generators for different underlying groups are
+``independently'' generated, since the description of the underlying
+group is found in the protocol info file.
+
+
+\subsection{Proof of a Shuffle of Commitments}\label{sect:pos}
+
+In the \veri mix-net the mix-servers commit themselves in a
+pre-computation phase to permutations that are later used during the
+mixing phase. A proof of a shuffle of commitments allows a mix-server
+to show that it did so correctly and that it knows how to open its
+commitment. Below we only describe the computations performed by the
+verifier for a specific application of the Fiat-Shamir heuristic. For
+a detailed description of the complete protocol including the
+computations performed by the prover we refer the reader to
+\app{proofsofshuffles} and Terelius and Wikstr{\"o}m~\cite{TW10}.
+
+\begin{nicebox}
+  \begin{algorithm}[Verifier of Proof of a Shuffle of Commitments]$\quad$\label{algo:pos}\\
+
+    \vspace{-0.3cm}
+    \hspace{-0.3cm}
+    \begin{tabular}{cl}
+      \textbf{Input} & \textbf{Description}\\
+      $\rho$ & Prefix to random oracles.\\
+      $\PNmax$ & Size of the arrays.\\
+      $\secpe$ & Number of bits in each component of random
+      vectors used for batching.\\
+      $\secpr$ & Acceptable ``statistical error'' when deriving independent generators.\\
+      $\secpv$ & Number of bits in challenges.\\
+      $\prg$ & Pseudo-random generator $\prg$ used to derive random
+      vectors for batching.\\
+      $\Gq$ & Group of prime order with standard generator $g$.\\ 
+      $u$ & Array $\permcommj{}=(\permcommjip{0},\ldots,\permcommjip{\PNmax-1})$ of Pedersen commitments in
+      $\Gq$.\\
+      $\proofC{}$ & Commitment of the Fiat-Shamir proof.\\
+      $\proofR{}$ & Reply of the Fiat-Shamir proof.
+    \end{tabular}
+
+    \vspace{0.2cm}
+    \noindent
+    \textbf{Program}
+
+    \vspace{-0.3cm}
+  \begin{enumerate}
+
+  \item 
+    \begin{enumerate}
+    \item Interpret $\proofC{}$ as
+      $\node{\bt{B},\bt{A'},\bt{B'},\bt{C'},\bt{D'}}$, where
+      $A',C',D'\in\Gq$, and $B=(B_0,\ldots,B_{\PNmax-1})$ and
+      $B'=(B_0',\ldots,B_{\PNmax-1}')$ are arrays in $\Gq$.
+
+  \item Interpret $\proofR{}$ as
+    $\node{\bt{k_A},\bt{k_B},\bt{k_C},\bt{k_D},\bt{k_E}}$, where
+    $k_A,k_C,k_D\in\zedq$, and $k_B=(k_{B,0},\ldots,k_{B,\PNmax-1})$ and
+    $k_E=(k_{E,0},\ldots,k_{E,\PNmax-1})$ are arrays in $\zedq$.
+
+    \end{enumerate}
+    Reject if this fails.
+
+  \item Compute a seed
+    $s=\RO_s\big(\rho\mid\node{\bt{g},\bt{h},\bt{u}}\big)$.
+
+  \item Set $(t_0,\ldots,t_{\PNmax-1})=\prg(s)$, where
+    $t_i\in\{0,1\}^{8\lceil\secpe/8\rceil}$ is interpreted as a
+    non-negative integer $0\leq t_i<2^{8\lceil\secpe/8\rceil}$, set $e_i=t_i\bmod 2^{\secpe}$ and compute
+    \begin{align*}
+      A=\prod\nolimits_{i=0}^{\PNmax-1}\permcommjip{i}^{e_i}\enspace .
+    \end{align*}
+
+  \item Compute a challenge
+    $v=\RO_v\big(\rho\mid\node{\leaf{s},\proofC{}}\big)$ interpreted as a
+    non-negative integer $0\leq v<2^{\secpv}$.
+
+  \item Compute
+    \begin{align*}
+      C=\frac{\prod\nolimits_{i=0}^{\PNmax-1}\permcommjip{i}}{\prod\nolimits_{i=0}^{\PNmax-1}\hi{i}}\quad\text{and}\quad D=\frac{B_{\PNmax-1}}{\hi{0}^{\prod_{i=0}^{\PNmax-1}e_i}}\enspace,
+    \end{align*}
+    set $B_{-1}=\hi{0}$, and accept if and only if:
+    \begin{align*}
+      A^vA'&=g^{k_A}\prod\nolimits_{i=0}^{\PNmax-1}\hi{i}^{k_{E,i}}
+      &C^vC'&=g^{k_C}\\
+      B_i^vB_i'&=g^{k_{B,i}}B_{i-1}^{k_{E,i}}\enspace\text{for $i=0,\ldots,\PNmax-1$}
+      &D^vD'&=g^{k_D}
+    \end{align*}
+  \end{enumerate}
+  
+\end{algorithm}
+\end{nicebox}
+
+\subsection{Commitment-Consistent Proof of a Shuffle of Ciphertexts}\label{sect:ccpos}
+
+During the mixing in \veri each mix-server re-encrypts the ciphertexts
+in its input, permutes the resulting ciphertexts using the permutation
+it is committed to, and then outputs the result. Then it uses a
+commitment-consistent proof of a shuffle to show that it did so
+correctly. We only describe a specific implementation of the verifier
+using the Fiat-Shamir heuristic. For a detailed description of the
+complete protocol including the computations performed by the prover
+we refer the reader to \app{proofsofshuffles} and
+Wikstr{\"o}m~\cite{wik09b}.
+
+\begin{nicebox}
+  \begin{algorithm}[Verifier of Commitment-Consistent Proof of a Shuffle]$\quad$\label{algo:ccpos}\\
+
+    \vspace{-0.3cm}
+    \hspace{-0.3cm}
+    \begin{tabular}{cl}
+      \textbf{Input} & \textbf{Description}\\
+      $\rho$ & Prefix to random oracles.\\
+      $\PN$ & Size of the arrays.\\
+      $\secpe$ & Number of bits in each component of random
+      vectors used for batching.\\
+      $\secpr$ & Acceptable ``statistical error'' when deriving independent generators.\\      
+      $\secpv$ & Number of bits in challenges.\\
+      $\prg$ & Pseudo-random generator $\prg$ used to derive random
+      vectors for batching.\\
+      $\Gq$ & Group of prime order.\\ 
+      $u$ & Shrunk array $\permcommj{}=(\permcommjip{0},\ldots,\permcommjip{\PN})$ of Pedersen commitments in
+      $\Gq$.\\
+      $\RSpace$ & Randomizer group.\\
+      $\CSpace$ & Ciphertext group.\\
+      $\pk$ & \elgamal public key.\\ 
+      $\ciphj{}$ & Array $\ciphj{}=(\ciphjip{0},\ldots,\ciphjip{\PN-1})$ of input ciphertexts in $\CSpace$.\\
+      $\ciphj{}'$ & Array $\ciphj{}'=(\ciphjip{0}',\ldots,\ciphjip{\PN-1}')$ of output ciphertexts in $\CSpace$.\\
+      $\proofC{}$ & Commitment of the Fiat-Shamir proof.\\
+      $\proofR{}$ & Reply of the Fiat-Shamir proof.
+    \end{tabular}
+
+    \vspace{0.2cm}
+    \noindent
+    \textbf{Program}
+
+    \vspace{-0.3cm}
+  \begin{enumerate}
+
+  \item 
+    \begin{enumerate}
+
+    \item Interpret $\proofC{}$ as $\node{\bt{A'},\bt{B'}}$, where
+      $A'\in\Gq$ and $B'\in\CSpace$.
+
+    \item Interpret $\proofR{}$ as
+      $\node{\bt{k_A},\bt{k_B},\bt{k_E}}$, where $k_A\in\zedq$,
+      $k_B\in\RSpace$, and $k_E$ is an array of $\PN$ elements in
+      $\zedq$.
+
+    \end{enumerate}
+    Reject if this fails.
+
+  \item Compute a seed
+    $s=\RO_s\big(\rho\mid\node{\bt{g},\bt{h},\bt{u},\bt{\pk},\bt{\ciphj{}},\bt{\ciphj{}'}}\big)$.
+
+  \item Set $(t_0,\ldots,t_{\PN-1})=\prg(s)$, where
+    $t_i\in\{0,1\}^{8\lceil\secpe/8\rceil}$ is interpreted as a
+    non-negative integer $0\leq t_i<2^{8\lceil\secpe/8\rceil}$, set $e_i=t_i\bmod 2^{\secpe}$ and compute
+    \begin{align*}
+      A=\prod_{i=0}^{\PN-1}\permcommjip{i}^{e_i}\enspace.
+    \end{align*}
+
+  \item Compute a challenge
+    $v=\RO_v\big(\rho\mid\node{\leaf{s},\proofC{}}\big)$ interpreted as a
+    non-negative integer $0\leq v<2^{\secpv}$.
+
+  \item Compute $B=\prod\nolimits_{i=0}^{N-1}\ciphjip{i}^{e_i}$ and accept if
+    and only if:
+    \begin{align*}
+      A^vA'&=g^{k_A}\prod\nolimits_{i=0}^{N-1}\hi{i}^{k_{E,i}}
+      &B^vB'&=\Enc_{\pk}(1,-k_{B})\prod\nolimits_{i=0}^{N-1}(\ciphjip{i}')^{k_{E,i}}\\
+    \end{align*}
+
+  \end{enumerate}
+\end{algorithm}
+\end{nicebox}
+
+
+\subsection{Proof of Correct Decryption Factors}
+
+At the end of the mixing the parties jointly decrypt the re-encrypted
+and permuted list of ciphertexts. To prove that they did so correctly
+they use a proof of correct decryption factors. This is a standard
+protocol using batching for improved efficiency. The general technique
+originates in Bellare et al.~\cite{BeGaRa}.
+
+\begin{nicebox}
+\begin{algorithm}[Verifier of Decryption Factors]\label{algo:decrypt}$\quad$\\
+
+    \vspace{-0.3cm}
+    \hspace{-0.3cm}
+    \begin{tabular}{cl}
+      \textbf{Input} & \textbf{Description}\\
+      $\rho$ & Prefix to random oracles.\\
+      $\PN$ & Size of the arrays.\\
+      $\secpe$ & Number of bits in each component of random
+      vectors used for batching.\\
+      $\secpr$ & Acceptable ``statistical error'' when deriving independent generators.\\      
+      $\secpv$ & Number of bits in challenges.\\
+      $\prg$ & Pseudo-random generator $\prg$ used to derive random
+      vectors for batching.\\
+      $\Gq$ & Group of prime order.\\ 
+      $\y$ & Partial public key.\\ 
+      $\CSpace$ & Ciphertext group.\\
+      $\MSpace$ & Plaintext group.\\
+      $\ciphj{}$ & Array $\ciphj{}=(\ciphjip{0},\ldots,\ciphjip{\PN-1})$ of input ciphertexts in $\CSpace$.\\
+      $\decrfact$ & Array $\decrfact=(\decrfactjip{0},\ldots,\decrfactjip{\PN-1})$ of decryption factors in $\Gq$.\\
+      $\proofC{}$ & Commitment of the Fiat-Shamir proof.\\
+      $\proofR{}$ & Reply of the Fiat-Shamir proof.
+    \end{tabular}
+
+    \vspace{0.2cm}
+    \noindent
+    \textbf{Program}
+
+    \vspace{-0.3cm}
+    \begin{enumerate}
+
+    \item 
+      \begin{enumerate}
+      \item Interpret $\proofC{}$ as $\node{\bt{\y'},\bt{B''}}$, where
+        $\y'\in\Gq$ and $B''$ is an array containing a single element $B'$
+        in $\MSpace$.
+
+      \item Interpret $\proofR{}$ as $\bt{k_{\x}}$, where
+        $k_{\x}\in\zedq$.
+
+      \end{enumerate}
+      Reject if this fails.
+
+    \item Compute a seed
+      $s=\RO_s\big(\rho\mid\node{\node{\bt{g},\bt{\ciph}},\node{\bt{\y},\bt{\decrfact}}}\big)$.
+
+    \item Set $(t_0,\ldots,t_{\PN-1})=\prg(s)$, where
+      $t_i\in\{0,1\}^{8\lceil\secpe/8\rceil}$ is interpreted as a
+      non-negative integer $0\leq t_i<2^{8\lceil\secpe/8\rceil}$, set $e_i=t_i\bmod 2^{\secpe}$ and compute
+      \begin{align*}
+        A=\prod\nolimits_{i=0}^{\PN-1}\ciphjip{i}^{e_i}\quad\text{and}\quad
+        B=\prod\nolimits_{i=0}^{\PN-1}\decrfact^{e_i}\enspace .
+      \end{align*}
+
+    \item Compute a challenge
+      $v=\RO_v\big(\rho\mid\node{\leaf{s},\proofC{}}\big)$ interpreted as a
+      non-negative integer $0\leq v<2^{\secpv}$.
+
+    \item Accept if and only if $\y^v\y'=\g^{k_{\x}}$ and
+      $B^vB'=\PDec_{k_{\x}}(A)$.
+
+    \end{enumerate}
+
+\end{algorithm}
+\end{nicebox}
+
+
+\section{Verification}\label{sect:verify}
+
+The verification algorithm must verify that the input ciphertexts were
+repeatedly re-rerandomized by the mix-servers and then jointly
+decrypted with a secret key corresponding to the public key used by
+senders to encrypt their messages. Furthermore, the parameters of the
+execution must match the parameters in the protocol info file.
+
+The verification algorithm must take two parameters.
+\begin{itemize}
+
+\item \code{protocolInfo.xml} -- Protocol info file containing the
+  public parameters. \sect{infofiles} describes the format of this
+  file and \sect{extracted} introduces notation for the values we
+  need.
+    
+\item \code{roProof} -- Proof directory containing the intermediate
+  results and the Fiat-Shamir proofs relating the intermediate
+  results. The contents of this directory is described below.
+ 
+\end{itemize}
+
+\subsection{Contents of the Proof Directory}\label{sect:inputs}
+
+The proof directory contains not only the Fiat-Shamir proofs, but also
+the intermediate results. In this section we describe the formats of
+these files and introduce notation for their contents. Here
+$\param{l}$ denotes a integer parameter $0\leq l\leq \Mk$ encoded
+using two decimal digits representing the index of a mix-server, but a
+file with suffix $l$ may not originate from the $l$th mix-server if it
+is corrupted and all types of files do not appear with all
+suffixes. For easy reference we tabulate the notation introduced below
+and from which file the contents is derived in \tabl{corr}.
+\begin{enumerate}
+
+\item\label{poin:fullpk}\btfilei{FullPublicKey}{} -- Full public key
+  used to form input ciphertexts.
+
+\item\label{poin:pk}\btfilei{PublicKey}{$\param{l}$} -- Partial public
+  key of the $l$th mix-server. The required format of this file is a
+  byte tree $\bt{\yj{l}}$, where $\yj{l}\in\Gq$.
+
+\item\label{poin:sk}\btfilei{SecretKey}{$\param{l}$} -- Secret key
+  file of the $l$th party. This is only created if the $l$th
+  mix-server is identified as a cheater. In this case its secret key
+  is recovered and its part in the joint decryption is computed
+  locally by the other mix-servers. The required format of this file
+  is a byte tree $\bt{\xj{l}}$, where $\xj{l}\in\zedq$.
+
+\item\label{poin:ciphs}\btfilei{CiphertextList}{$\param{l}$} -- The
+  $l$th intermediate list of ciphertexts, i.e., normally the output of
+  the $l$th mix-server. This file should contain a byte tree
+  $\bt{\List{l}}$, where $\List{l}$ is an array of $\PN$ elements in
+  $\CSpace$ and $\PN\leq\PNmax$ is the number of elements in the list
+  $\List{0}$ of input ciphertexts.
+
+\item\label{poin:permcom}\btfilei{PermutationCommitment}{$\param{l}$}
+  -- Commitment to a permutation. This file should contain a byte tree
+  $\bt{\permcommj{l}}$, where $\permcommj{l}$ is an array of $\PNmax$
+  elements in $\Gq$.
+
+\item\label{poin:poscom}\btfilei{PoSCommitment}{$\param{l}$} --
+  ``Proof commitment'' of the proof of a shuffle of commitments. The
+  required format of the byte tree $\posproofC{l}$ in this file is
+  specified in \algo{pos}.
+
+\item\label{poin:posrep}\btfilei{PoSReply}{$\param{l}$} -- ``Proof
+  reply'' of the proof of a shuffle of commitments. The required
+  format of the byte tree $\posproofR{l}$ in this file is specified in
+  \algo{pos}.
+
+\item\label{poin:keep}\btfilei{KeepList}{$\param{l}$} -- Keep-list
+  used to shrink a permutation-commitment if pre-computation is used
+  before the mix-net is executed. The file should contain a byte tree
+  $\bt{\keeplistj{l}}$, where $\keeplistj{l}$ should be an array of
+  $\PNmax$ booleans, of which exactly $N$ are true, indicating which
+  components to keep.
+
+\item\label{poin:ccposcom}\btfilei{CCPoSCommitment}{$\param{l}$} --
+  ``Proof commitment'' of the commitment-consistent proof of a
+  shuffle. The required format of the byte tree $\ccposproofC{l}$ in
+  this file is specified in \algo{ccpos}.
+
+\item\label{poin:ccposrep}\btfilei{CCPoSReply}{$\param{l}$} -- ``Proof
+  reply'' of the commitment-consistent proof of a shuffle. The
+  required format of the byte tree $\ccposproofR{l}$ in this file is
+  specified in \algo{ccpos}.
+
+\item\label{poin:decr}\btfilei{DecryptionFactors}{$\param{l}$} --
+  Decryption factors of the $l$th mix-server used to jointly decrypt
+  the shuffled ciphertexts. This file should contain a byte tree
+  $\node{\bt{\yj{l}},\bt{\decrfactj{l}}}$, where $\decrfactj{l}$ is an
+  array of $\PN$ elements in $\Gq$.
+
+\item\label{poin:decrcom}\btfilei{DecrFactCommitment}{$\param{l}$} --
+  ``Proof commitment'' of the proof of correctness of the decryption
+  factors. The required format of the byte tree $\dproofC{l}$ of this
+  file is specified in \algo{decrypt}.
+
+\item\label{poin:decrrep}\btfilei{DecrFactReply}{$\param{l}$} --
+  ``Proof reply'' of the proof of correctness of the decryption
+  factors. The required format of the byte tree $\dproofC{l}$ of this
+  file is specified in \algo{decrypt}.
+
+\item\label{poin:plain}\btfilei{PlaintextElements}{} -- The output
+  plaintext elements that has not been decoded in any way. This file
+  should contain a byte tree $\bt{m}$, where $m$ is an array of $\PN$
+  elements in $\MSpace$.
+
+\end{enumerate}
+
+\begin{table}[h]
+  \centering
+\begin{tabular}{c|c|l}
+  Notation & Point & File \\
+  \hline
+  $(\g,\y)$ & \ref{poin:fullpk} & \btfilei{FullPublicKey}{}\\
+  $\yj{l}$ & \ref{poin:pk} & \btfilei{PublicKey}{$\param{l}$}\\
+  $\xj{l}$ & \ref{poin:sk} & \btfilei{SecretKey}{$\param{l}$}\\
+  $\List{l}$ & \ref{poin:ciphs} & \btfilei{CiphertextList}{$\param{l}$}\\
+  $\permcommj{l}$ & \ref{poin:permcom} & \btfilei{PermutationCommitment}{$\param{l}$}\\
+  $\posproofC{l}$ & \ref{poin:poscom} & \btfilei{PoSCommitment}{$\param{l}$}\\
+  $\posproofR{l}$ & \ref{poin:posrep} & \btfilei{PoSReply}{$\param{l}$}\\
+  $\keeplistj{l}$ & \ref{poin:keep} & \btfilei{KeepList}{$\param{l}$}\\
+  $\ccposproofC{l}$ & \ref{poin:ccposcom} & \btfilei{CCPoSCommitment}{$\param{l}$}\\
+  $\ccposproofR{l}$ & \ref{poin:ccposrep} & \btfilei{CCPoSReply}{$\param{l}$}\\
+  $\decrfactj{l}$ & \ref{poin:decr} & \btfilei{DecryptionFactors}{$\param{l}$}\\
+  $\dproofC{l}$ & \ref{poin:decrcom} & \btfilei{DecrFactCommitment}{$\param{l}$}\\
+  $\dproofC{l}$ & \ref{poin:decrrep} & \btfilei{DecrFactReply}{$\param{l}$}\\
+  $\mess$ & \ref{poin:plain} & \btfilei{PlaintextElements}{}
+\end{tabular}
+\caption{Correspondence between notation and files containing the denoted objects.}\label{tabl:corr}
+\end{table}
+
+
+\subsection{Core Verification Algorithm}\label{sect:verifyalg}
+
+We are finally ready to describe the core verification algorithm. We
+stress that this algorithm only verifies that a protocol info file and
+the contents of the proof directory are correct. In an application the
+public key actually given to senders, the input ciphertexts, and the
+output plaintexts may be represented using an application-dependent
+format and it must be verified that these correspond to their
+counterparts in the proof directory. We discuss this in
+\sect{fullverify}.
+
+\begin{enumerate}
+
+\item\textbf{Verification of Protocol Info File.} The soundness of the
+  parameters of the execution must be verified manually by a
+  cryptographer. If any parameter is not chosen with an acceptable
+  security level, then \reject. Verify that the XML of the protocol
+  info file is compliant with the XML schema of protocol info files
+  and \reject otherwise.
+
+\item\textbf{Public Parameters.} Read the public parameters from the
+  protocol info file as described in \sect{infofiles}. If this fails,
+  then \reject. This defines
+  \begin{align*}
+    \Mk,\PNmax,\secpr,\secpv,\secpe,\prg,\Gq,\hash\enspace.
+  \end{align*}
+
+\item\label{step:roprefix}\textbf{Prefix to Random Oracles.} To
+  differentiate executions on different public parameters, we let
+  $\rho=\leaf{\hash(f)}$, where $f$ is the array of bytes contained in
+  the protocol info file, and use this as a prefix to our random
+  oracles.
+
+\item\textbf{Joint Public Key.} Attempt to read the joint public key
+  $(\g,\y)\in\Gq\times\Gq$ from file as described in \poin{fullpk}. If
+  this fails, then \reject.
+
+\item\textbf{Individual Public Keys.} Read public keys
+  $\yj{1},\ldots,\yj{\Mk}$ as described in \poin{pk}. If this fails,
+  then \reject. Then test if $\y=\prod_{l=1}^{\Mk}\yj{l}$, i.e., check
+  that the keys $\yj{1},\ldots,\yj{\Mk}$ of the mix-servers are
+  consistent with the public key $\y$. If not, then \reject.
+
+\item\textbf{Array of Input Ciphertexts.} Read the array $\List{0}$ of
+  $\PN\leq\PNmax$ ciphertexts as described in \poin{ciphs} for some
+  $\PN$. If this fails, then \reject.
+
+\item\textbf{Proofs of Shuffles.} For $l=1,\ldots,\thres$ do:
+  \begin{enumerate}
+
+  \item\textbf{Verify Proof of Shuffle of Commitments.}  Read a
+    permutation commitment $\permcommj{l}$, a proof commitment
+    $\posproofC{l}$, and proof reply $\posproofR{l}$ as described in
+    \poin{permcom}, \poin{poscom}, and \poin{posrep},
+    respectively. Then execute
+    \algo{pos} on input\\
+    $(\rho,\PNmax,\secpe,\secpr,\secpv,\prg,\Gq,\permcommj{l},\posproofC{l},\posproofR{l})$. If
+    reading fails or if the algorithm rejects, then set
+    $\permcommj{l}=h$.
+
+  \item\textbf{Shrink Permutation Commitment.} 
+    \begin{enumerate}
+
+    \item Read the keep-list $\keeplistj{l}$ as described in
+      \poin{keep}. If this fails, then let $\keeplistj{l}$ be the
+      array of $\PNmax$ booleans of which the first $\PN$ are true and
+      the rest false.
+
+    \item Set
+      $\spermcommj{l}=(\permcommji{l}{i})_{\keeplistji{l}{i}=\True}$
+      be the sub-array indicated by $\keeplistj{l}$.
+
+    \end{enumerate}
+
+  \item\textbf{Array of Ciphertexts.} Read the array $\List{l}$ of
+    $\PN$ ciphertexts in $\CSpace$ as described in \poin{ciphs}. If
+    this fails, then \reject.
+
+  \item\textbf{Verify Commitment-Consistent Proof of Shuffle.} Read
+    proof commitment $\ccposproofC{l}$ and proof reply
+    $\ccposproofR{l}$ as described in \poin{ccposcom} and
+    \poin{ccposrep}, respectively. Then execute \algo{ccpos} on input
+    \begin{align*}
+      (\rho,\PNmax,\PN,\secpe,\secpr,\secpv,\prg,\Gq,\permcommj{l},\RSpace,\CSpace,\List{l-1},\List{l},\pk,\ccposproofC{l},\ccposproofR{l})\enspace.
+    \end{align*}
+    If reading fails or if the algorithm rejects, then verify that
+    $\List{l}=\List{l-1}$. If this is not the case, then \reject.
+
+  \end{enumerate}
+
+\item\textbf{Proofs of Decryption.} For $l=1,\ldots,\Mk$ do:
+  \begin{enumerate}
+
+  \item If $\xj{l}$ can be read as described in \poin{sk} such that
+    $\yj{l}=\g^{\xj{l}}$, then set
+    $\decrfactj{l}=\PDec_{\xj{l}}(\List{l-1})$.
+
+  \item Otherwise, read $\decrfactj{l}$, $\proofC{l}$, and
+    $\proofR{l}$ of the $l$th mix-server as described in \poin{decr},
+    \poin{decrcom}, and \poin{decrrep}, respectively. Then execute
+    \algo{decrypt} on input
+    \begin{align*}
+      (\rho,\PN,\secpe,\secpr,\secpv,\prg,\Gq,\permcomm,\CSpace,\MSpace,\y,\List{\thres},\decrfactj{l},\proofC{l},\proofR{l})\enspace.
+    \end{align*}
+    If it rejects, then \reject.
+
+  \end{enumerate}
+
+\item\textbf{Verify Output.} Attempt to read the plaintext elements
+  $\mess$ as described in \poin{plain}. Then verify that
+  $\mess=\TDec\big(\List{\thres},\prod_{l=1}^{\Mk}\decrfactj{l}\big)$.
+
+\end{enumerate}
+
+
+\paragraph{Standard Command-Line Interface of Core Verification Algorithm.}
+
+To simplify the implementation of scripts that execute multiple
+verifiers that are implemented by independent parties, we require that
+every verifier can be used as follows, where \code{vmnv} denotes the
+verification algorithm command, \code{protInfo.xml} is the protocol
+info file, and \code{roProof} is the proof directory.
+
+\vspace{0.3cm}
+\begin{lstlisting}[frame=single,language=xml,
+basicstyle=\tt,showstringspaces=false]
+vmnv protInfo.xml roProof
+\end{lstlisting}
+
+\vspace{0.2cm}
+\noindent
+The command should by default give no output and its exit status
+should be zero if the proof is accepted and non-zero otherwise. It
+should also have an option \code{-v} that activates verbose output,
+but it is up to the implementer to decide on the format used in the
+output. It is acceptable to assume that the option appears before any
+of the parameters.
+
+\subsection{Verification Algorithm}\label{sect:fullverify}
+
+The formats used to represent the public key handed to the senders and
+the list of ciphertexts received from senders and how plaintext group
+elements are decoded into messages is application dependent. Thus, to
+verify the overall correctness, it must be verified that:
+\begin{enumerate}
+
+\item The public key actually used by senders is $(\g,\y)$.
+
+\item The list of ciphertexts actually submitted by senders is
+  $\List{0}$.
+
+\item The output plaintexts are correctly decoded from the group
+  elements in $\mess$.
+
+\end{enumerate}
+This falls outside the scope of this document, since in general we can
+not anticipate the representations used by application developer or
+how the plaintext group elements are interpreted.
+
+However, one natural approach is to use an existing or custom mix-net
+interface of \veri. In the user manual of the \veri
+mix-net~\cite{vmnum} we describe how this can be done.
+
+
+\paragraph{Standard Command-Line Interface of Verification Algorithm.}
+
+Regardless of the approach used, we require that the verifier
+implements a standard command-line interface to allow easy
+scripting. Let \code{vmnv} denote the verification algorithm command,
+let \code{protInfo.xml} be the protocol info file, let \code{roProof}
+be the proof directory, let \code{publicKey} contain the public key,
+let \code{ciphertexts} contain the input ciphertexts, and let
+\code{plaintexts} contain the decoded plaintexts. Then we require that
+the following runs the verification algorithm.
+
+\vspace{0.3cm}
+\begin{lstlisting}[frame=single,language=xml,
+basicstyle=\tt,showstringspaces=false]
+vmnv protInfo.xml roProof pkey ciphertexts plaintexts
+\end{lstlisting}
+
+\vspace{0.2cm}
+\noindent
+The \code{-v} option must activate verbose output in the same way as
+for the core verification command. We stress that every verifier
+should also implement the core verifier command-line interface.
+
+
+\section{Acknowledgments}
+
+Olivier Pereira gave valuable feedback on an initial version of this
+document. The suggestions of Tomer Hasid, Shahram Khazaei, Gunnar
+Kreitz, and Amnon Ta-Shma have greatly improved the presentation.
+
+
+\bibliographystyle{abbrv}
+\bibliography{vtm}
+
+
+\appendix
+
+\section{Test Vectors for the Cryptographic Library}
+
+\input{test_vectors.tex}
+
+\section{Schema for Protocol Info Files}\label{sect:protocolinfoschema}
+
+\lstset{
+%frame=single,
+language=xml,
+keywordstyle=\tt\xmlfontsize,
+float,
+basicstyle=\tt\xmlfontsize,
+captionpos=t,
+label=list:protocolinfoschema
+}
+
+\lstinputlisting{protInfo.xsd}
+
+\section{Example Protocol Info File}\label{sect:exampleinfofile}
+
+\lstset{
+%frame=single,
+keywordstyle=\it\ttfamily\xmlfontsize,
+language=xml,
+float,
+basicstyle=\tt\xmlfontsize,
+captionpos=t,
+label=list:exampleinfofile
+}
+
+\lstinputlisting{protInfo.tex}
+
+\section{Protocols}\label{sect:proofsofshuffles}
+
+\input{pos}
+
+\input{ccpos}
+
+\end{document}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

@@ -1,0 +1,300 @@
+# Copyright 2008 2009 2010 Douglas Wikstrom
+
+# This file is part of Verificatum.
+
+# Verificatum is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+
+# Verificatum is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+
+# You should have received a copy of the GNU Lesser General Public
+# License along with Verificatum.  If not, see
+# <http://www.gnu.org/licenses/>.
+
+
+# Apparently "seq" is not a standard Unix command, so we provide our
+# own.
+
+  seq() { SEQ_LIST= SEQ_COUNTER=$1
+
+    while [ $SEQ_COUNTER -le $2 ] ; do
+	SEQ_LIST="$SEQ_LIST $SEQ_COUNTER"
+	SEQ_COUNTER=$(expr $SEQ_COUNTER + 1 )
+    done
+
+    echo $SEQ_LIST
+}
+
+
+starttime() {
+    eval "START_TIME=`$DATE_BIN '+%s'`"
+}
+
+endtime() {
+    eval "printf '$((`$DATE_BIN '+%s'`-$START_TIME)) ' >> $TIME_FILE"
+}
+
+sset() {
+    eval "MIXSERVER_HOSTS_$1=\$2"
+}
+sget() {
+    eval "$1=\${MIXSERVER_HOSTS_$2}"
+}
+
+uset() {
+    eval "USERNAME_$1=\$2"
+}
+uget() {
+    eval "$1=\${USERNAME_$2}"
+}
+
+
+copyto() {
+    getloc LOC ${2}
+    getprefix PREFIX ${2}
+    scp -q ${1} ${LOC}${PREFIX}/Party${2}/
+}
+
+copyfrom() {
+    getloc LOC ${1}
+    getprefix PREFIX ${1}
+    scp -q ${LOC}${PREFIX}/Party${1}/${2} ${3}
+}
+
+copyfromto() {
+    getloc LOC ${2}
+    getprefix PREFIX ${2}
+    scp -q ${LOC}${PREFIX}/Party${2}/${1} $TMP_FILE
+
+    getloc LOC ${3}
+    getprefix PREFIX ${3}
+    scp -q $TMP_FILE ${LOC}${PREFIX}/Party${3}/${1}
+
+    rm -f $TMP_FILE
+}
+
+mkdirat() {
+    getssh SSH ${1}
+    getprefix PREFIX ${1}
+    eval "$SSH ''rm -rf $PREFIX/Party${1}''"
+    eval "$SSH ''mkdir -p $PREFIX/Party${1}''"
+}
+
+rmdirat() {
+    getssh SSH ${1}
+    getprefix PREFIX ${1}
+    if test $PREFIX = "."
+    then
+       eval "$SSH ''rm -rf $PREFIX/Party${1}''"
+    else
+       eval "$SSH ''rm -rf $PREFIX''"
+    fi
+}
+
+evalat() {
+    getssh SSH ${2}
+    getprefix PREFIX ${2}
+    if test x${3} = "x&";
+    then
+	DELIMITER="&"
+    else
+	DELIMITER=";"
+    fi
+    eval "$SSH '''$SETUP_ENV; cd ${PREFIX}/Party${2}; ${1}${DELIMITER} cd - > /dev/null'''"
+}
+
+cpevalat() {
+    chmod +x ${1}
+    copyto ${1} ${2}
+    evalat ${1} ${2} ${3}
+}
+
+ERROR=f
+
+if test x$DEFAULT_USERNAME = x;
+then
+
+    if test x$MIXSERVER_HOSTS_1 = x;
+    then
+	REMOTE=f
+    else
+	for i in `seq 1 $NO_MIXSERVERS`;
+	do
+	    sget HOSTNAME $i
+	    uget USER $i
+	    if test x$HOSTNAME = x -o x$USER = x;
+	    then
+		echo "You have defined too few MIXSERVER_HOSTS_<n> or "
+		echo "USERNAME_<n> variables, where <n> is the sequence"
+		echo "number. Please read the instructions in the "
+		echo "conf-file."
+		ERROR=t
+	    fi
+	done
+	REMOTE=t
+    fi
+else
+    if test x$DEFAULT_HOSTNAME = x;
+    then
+	echo "DEFAULT_USERNAME is defined, but not DEFAULT_HOSTNAME!"
+	ERROR=t
+    else
+            # Hosts on which the servers are run.
+	for i in `seq 1 $NO_MIXSERVERS`
+	do
+	    sset $i $DEFAULT_HOSTNAME
+	    uset $i $DEFAULT_USERNAME
+	done
+
+	REMOTE=t
+    fi
+fi
+
+if test $ERROR = t;
+then
+    echo "There was a configuration error. Please read instructions in the "
+    echo "file 'conf'. Cowardly refusing to proceed with demonstration."
+    echo "Exiting script..."
+    exit 1
+fi
+
+if test x${ARRAYS} = x;
+then
+    echo "Please set the ARRAYS variable in the conf-file to either "
+    echo "'ram' or 'file' and then try again!"
+    exit 1
+fi
+
+
+if test $REMOTE = t;
+then
+    getdesc() {
+	eval "$1=\${USERNAME_${2}}@\${MIXSERVER_HOSTS_${2}}"
+    }
+
+    getloc() {
+	eval "$1=\${USERNAME_${2}}@\${MIXSERVER_HOSTS_${2}}:"
+    }
+
+    getssh() {
+	eval "$1=\"ssh \${USERNAME_${2}}@\${MIXSERVER_HOSTS_${2}}\""
+    }
+
+    gethn() {
+	eval "$1=\${MIXSERVER_HOSTS_${2}}"
+    }
+
+else
+    getdesc() {
+	eval "$1=localhost"
+    }
+
+    getloc() {
+	eval "$1="
+    }
+
+    getssh() {
+	eval "$1=eval "
+    }
+
+    gethn() {
+	eval "$1=localhost"
+    }
+fi
+
+
+if test x$DEFAULT_PREFIX = x;
+then
+
+    getprefix() {
+	eval "$1=\${PREFIX_$2}"
+    }
+
+else
+
+    getprefix() {
+	eval "$1=\${DEFAULT_PREFIX}"
+    }
+
+fi
+
+
+phasestart() {
+    printf "$1\n"
+}
+phaseend() {
+    printf ""
+}
+
+feedstart() {
+    printf "  $1..."
+}
+
+feedend() {
+    printf " done.\n"
+}
+
+demointro() {
+
+    echo ""
+    echo "DEMONSTRATION OF EL GAMAL MIX-NET"
+    echo "--------------------------------------------------------"
+    echo "Number of mix-servers:              $NO_MIXSERVERS"
+
+    for i in `seq 1 $NO_MIXSERVERS`;
+    do
+	getdesc DESC $i
+	echo "Party $i executed at:                $DESC"
+    done
+
+    if test $MAX_NO_CIPHERTEXTS -gt 0;
+    then
+	echo "No. ciphertexts in precomp.:        $MAX_NO_CIPHERTEXTS"
+    fi
+
+    echo "No. ciphertexts in mixing:          $NO_CIPHERTEXTS"
+    if test $WIDTH -gt 1;
+    then
+	echo "No. ciphertexts mixed in parallel:  $WIDTH"
+    fi
+    echo "Mix-net interface:                  $INTER"
+    echo "Arrays are stored on:               $ARRAYS"
+    echo "(currently the storage model does not apply to"
+    echo " arrays of elliptic curve elements)" 
+    echo "Zero-knowledge proofs:              $CORRECTNESS"
+
+    if test $PGROUP_TYPE = "fixed";
+    then
+	echo "Fixed safe-prime modulus of size:   $BIT_SIZE"
+    elif test $PGROUP_TYPE = "rand_sg";
+    then
+	echo "Random modulus with bitsize:        $BIT_SIZE"
+	echo "Logarithm of group size is:         $OBIT_SIZE"
+	echo "Subgroup encoding of messages."
+    elif test $PGROUP_TYPE = "rand_ro";
+    then
+	echo "Random modulus with bitsize:        $BIT_SIZE"
+	echo "Logarithm of group size is:         $OBIT_SIZE"
+	echo "Random encoding of messages."
+    elif test $PGROUP_TYPE = "joint";
+    then
+	echo "Joint modulus with bitsize:         $BIT_SIZE"
+    elif test $PGROUP_TYPE = "explicit";
+    then
+	echo "Group is:"
+	echo $PGROUP
+    fi
+    echo "--------------------------------------------------------"
+}
+
+demoend() {
+
+    echo "--------------------------------------------------------"
+    echo "DEMONSTRATION COMPLETED"
+    echo ""
+}

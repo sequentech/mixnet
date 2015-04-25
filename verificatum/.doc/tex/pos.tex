@@ -1,0 +1,74 @@
+\begin{nicebox}
+\begin{protocol}[Proof of a Shuffle of Commitments]$\quad$\label{prot:matrix}\\
+  \textbf{Common Input.} Generators $g,h_0,\ldots,h_{N-1}\in\Gq$
+  and
+  Pedersen commitments $u_0,\ldots,u_{N-1}\in\Gq$.\\
+  \textbf{Private Input.} Exponents $r=(r_0,\ldots,r_{N-1})\in\zedq^N$
+  and a permutation $\pi\in\permset{N}$ such that
+  $u_i=g^{r_{\pi(i)}}h_{\pi(i)}$ for $i=0,\ldots,N-1$.
+  \begin{enumerate}
+
+  \item $\V$ chooses a seed $s\in\{0,1\}^{\secp}$ randomly, defines
+    $e\in\INT{\secpe}^N$ as $e=\PRG(s)$, hands $s$ to $\P$ and
+    computes,
+    \begin{align*}
+      A=\prod\nolimits_{i=0}^{N-1}u_i^{e_i}\enspace .
+    \end{align*}
+
+  \item $\P$ computes the following, where $e_i'=e_{\ipi(i)}$:
+    \begin{enumerate}
+    \item \emph{Bridging Commitments.} It chooses
+      $b_0,\ldots,b_{N-1}\in\zedq$ randomly, sets $B_{-1}=h_0$, and forms
+    \begin{align*}
+      B_i=g^{b_i}B_{i-1}^{e_i'}\enspace
+      \text{for $i=0,\ldots,N-1$}\enspace.
+    \end{align*}
+
+  \item \emph{Proof Commitments.} It chooses
+    $\alpha,\beta_0,\ldots,\beta_{N-1},\gamma,\delta\in\zedq$ and
+    $\epsilon_0,\ldots,\epsilon_{N-1}\in\INT{\secpe+\secpv+\secpr}$
+    randomly, sets $B_{-1}=h_0$, and forms
+    \begin{align*}
+      A'&=g^{\alpha}\prod\nolimits_{i=0}^{N-1}h_i^{\epsilon_i}
+      &C'&=g^\gamma\\
+      B_i'&=g^{\beta_i}B_{i-1}^{\epsilon_i}\enspace\text{for $i=0,\ldots,N-1$}
+      &D'&=g^\delta\enspace.
+    \end{align*}
+    \end{enumerate}
+    Then it hands $(B,A',B',C',D')$ to $\V$.
+
+  \item $\V$ chooses $v\in\INT{\secpv}$ randomly and hands $v$ to $\P$.
+
+  \item $\P$ computes $a=\langle r,e'\rangle$,
+    $c=\sum_{i=0}^{N-1}r_i$. Then it sets $d_0=b_0$ and computes
+    $d_i=b_i+e_i'd_{i-1}$ for $i=1,\ldots,N-1$. Finally, it sets
+    $d=d_{N-1}$ and computes
+    \begin{align*}
+      k_A&=va+\alpha
+      &k_C&=vc+\gamma \\
+      k_{B,i}&=vb_i+\beta_i\enspace\text{for $i=0,\ldots,N-1$}
+      &k_D&=vd+\delta\\
+      &&k_{E,i}&=ve_i'+\epsilon_i\enspace\text{for $i=0,\ldots,N-1$}\enspace.
+    \end{align*}
+    Then it hands $(k_A,k_B,k_C,k_D,k_E)$ to $\V$.
+
+  \item $\V$ computes
+    \begin{align*}
+      C=\frac{\prod\nolimits_{i=0}^{N-1}u_i}{\prod\nolimits_{i=0}^{N-1}h_i}\quad\text{and}\quad D=\frac{B_{N-1}}{h_0^{\prod_{i=0}^{N-1}e_i}}\enspace,
+    \end{align*}
+    sets $B_{-1}=h_0$ and accepts if and only if
+    \begin{align*}
+      A^vA'&=g^{k_A}\prod\nolimits_{i=0}^{N-1}h_i^{k_{E,i}}
+      &C^vC'&=g^{k_C}\\
+      B_i^vB_i'&=g^{k_{B,i}}B_{i-1}^{k_{E,i}}\enspace\text{for $i=0,\ldots,N-1$}
+      &D^vD'&=g^{k_D}
+    \end{align*}
+
+  \end{enumerate}
+  
+\end{protocol}
+\end{nicebox}
+
+%%% Local Variables:
+%%% TeX-master: "vtm"
+%%% End:

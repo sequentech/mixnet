@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:element name="protocol">
+<xs:complexType>
+<xs:sequence>
+
+<xs:element name="version"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="sid"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="name"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="descr"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="nopart"
+            type="xs:integer"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="thres"
+            type="xs:integer"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="pgroup"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="width"
+            type="xs:integer"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="inter"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="maxciph"
+            type="xs:integer"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="statdist"
+            type="xs:integer"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="cbitlen"
+            type="xs:integer"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="cbitlenro"
+            type="xs:integer"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="vbitlen"
+            type="xs:integer"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="vbitlenro"
+            type="xs:integer"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="prg"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="rohash"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="corr"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+
+<xs:element name="party"
+            minOccurs="0"
+            maxOccurs="unbounded">
+<xs:complexType>
+<xs:sequence>
+
+<xs:element name="srtbyrole"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="name"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="pdescr"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="pkey"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="http"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+<xs:element name="hint"
+            type="xs:string"
+            minOccurs="1"
+            maxOccurs="1"/>
+
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+
+</xs:schema>
+
