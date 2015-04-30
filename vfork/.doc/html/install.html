@@ -1,0 +1,131 @@
+
+
+<html>
+
+  <head>
+    <title>Vfork</title>
+    <link rel="shortcut icon" href="vfork.ico">
+    <link rel="stylesheet" href="vfork.css">
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <style type="text/css"> td {padding-left:8pt; padding-right:8pt;}</style>
+    <style type="text/css"> th {padding-left:8pt; padding-right:8pt;}</style>
+  </head>
+
+  <body>
+
+    <hr>
+
+    <h1><font size="+4">Installing Vfork</font></h1>
+
+    <hr>
+
+    <p>
+      Below we detail three simple steps for installing a pure Java
+      build of Vfork on 64-bit Ubuntu 10.04 (Lucid) with a
+      Bash-shell. These instructions should be easy to adapt to other
+      Un*xes and shells. You may alternatively
+      <a href="variantinstall.html">install Vfork with support
+      for optimized native code and/or other extensions</a>.
+    </p>
+
+    <h2>1. Download, Build, and Install Vfork.</h2>
+    <p>
+      If you are running a vanilla installation of some Un*x, then try
+      the following commands, which fetches, compiles, and installs a
+      pure Java version of Vfork.
+    </p>
+    <p>
+      <table bgcolor=lightgrey>
+	<tr><td>
+	    <code>
+<pre>
+  wget http://www.vfork.com/download/vfork-1.0.7.tar.gz
+  tar xvf vfork-1.0.7.tar.gz
+  cd vfork-1.0.7
+  ./configure
+  make
+  sudo make install
+</pre>
+	    </code>
+	  </td>
+	</tr>
+      </table>
+    </p>
+    
+    <h2>2. Set Up Environment.</h2>
+
+    <p>
+      If you are running a vanilla installation of some Un*x with Bash
+      as login-shell, then you can simply copy the
+      file <code>.vfork_env</code> (generated
+      by <code>make</code>) to your home directory and source
+      this. You can achieve this as follows.
+    </p>
+    <p>
+      <table bgcolor=lightgrey>
+	<tr><td>
+	    <code>
+<pre>
+  cp .vfork_env ~/
+  printf '\nsource ~/.vfork_env' >> ~/.bashrc
+  source ~/.vfork_env
+</pre>
+	    </code>
+	  </td>
+	</tr>
+      </table>
+    </p>
+
+    <h2>3. Initialize the Random Source.</h2>
+    <p>
+      Some commands need randomness, and you need to tell Vfork
+      which source of randomness to use. You may
+      use <code>/dev/urandom</code> (the example below), one of
+      vfork's pseudo-random generators, or some other source of
+      randomness provided as a readable device. More information can
+      be found in the <code>README</code> file. You can use the
+      following to securely initialize your random source in most
+      Un*xes.
+    </p>
+    <p>
+      <table bgcolor=lightgrey>
+	<tr><td>
+	    <code>
+<pre>
+  vog -rndinit RandomDevice /dev/urandom
+</pre>
+	    </code>
+	  </td>
+	</tr>
+      </table>
+    </p>
+
+    <hr>
+
+    <h2>Uninstall.</h2>
+    <p>
+      Assuming you followed the above installation instructions and
+      want to uninstall, you need to remove
+      the <code>.vfork_env</code> from your home directory,
+      remove the line sourcing <code>.vfork_env</code> from
+      your <code>.bashrc</code> and then simply execute:
+    </p>
+    <p>
+      <table bgcolor=lightgrey>
+	<tr><td>
+	    <code>
+<pre>
+  sudo make uninstall
+</pre>
+	    </code>
+	  </td>
+	</tr>
+      </table>
+    </p>
+
+    <hr>
+
+Copyright 2008 2009 2010 2011 2012 Douglas Wikström <br>
+
+  </body>
+</html>

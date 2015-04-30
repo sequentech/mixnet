@@ -10787,7 +10787,7 @@ _ACEOF
   LIBS="-lgmpmee $LIBS"
 
 else
-  as_fn_error "\"GNU MP Modular Exponentiation Extension library not found, see http://www.verificatum.org/.\"" "$LINENO" 5
+  as_fn_error "\"GNU MP Modular Exponentiation Extension library not found, see http://www.vfork.org/.\"" "$LINENO" 5
 fi
  for ac_header in gmpmee.h
 do :
@@ -10798,7 +10798,7 @@ if test "x$ac_cv_header_gmpmee_h" = x""yes; then :
 _ACEOF
 
 else
-  as_fn_error "\"GNU MP Modular Exponentiation Extension header not found, see http://www.verificatum.org/.\"" "$LINENO" 5
+  as_fn_error "\"GNU MP Modular Exponentiation Extension header not found, see http://www.vfork.org/.\"" "$LINENO" 5
 fi
 
 done

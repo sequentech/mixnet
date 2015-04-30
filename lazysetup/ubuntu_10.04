@@ -1,7 +1,7 @@
 # Script for Ubuntu 10.04.
 
 # This is a do-it-all installation script. Untouched it installs every
-# possible extension of the Verificatum library, including the
+# possible extension of the Vfork library, including the
 # packages and libraries it requires. Edit it to your needs.
 
 # Install building tools.
@@ -46,16 +46,16 @@ fi
 ./configure --enable-jgmpmee --enable-jecn
 
 # Make corresponding installation script.
-make .verificatum_env
-source .verificatum_env
+make .vfork_env
+source .vfork_env
 
 # Copy environment script and let .bashrc source it.
-cp .verificatum_env ~/
+cp .vfork_env ~/
 echo "" >> ~/.bashrc
-echo "# Added by verificatum"
-echo "source ~/.verificatum_env" >> ~/.bashrc
+echo "# Added by vfork"
+echo "source ~/.vfork_env" >> ~/.bashrc
 
-# Make and install Verificatum
+# Make and install Vfork
 make
 sudo make install
 
@@ -64,9 +64,9 @@ vog -rndinit RandomDevice /dev/urandom
 
 # Instruct user to run demo.
 echo ""
-echo "You may now run the mix-net demo in the verificatum/demo/mixnet"
+echo "You may now run the mix-net demo in the vfork/demo/mixnet"
 echo "subdirectory by executing the following commands."
 echo ""
-echo "     source ~/.verificatum_env; cd verificatum/demo/mixnet";
+echo "     source ~/.vfork_env; cd vfork/demo/mixnet";
 echo "     ./demo"
 echo ""

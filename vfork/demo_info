@@ -1,0 +1,8 @@
+The mix-net comes with a well documented demonstrator which can be
+configured in many ways to illustrate the features of the mix-net. The
+demo is found in ./demo/mixnet (or ./vfork/demo/mixnet if you
+installed the metapackage containing GMPMEE and JGMPMEE).
+
+Please note that the demonstrator assumes that you have copied
+.vfork_env to your home directory. See the README file in the
+demo directory for more information.

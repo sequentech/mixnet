@@ -1,0 +1,28 @@
+changequote(`[[[[[[', `]]]]]]')
+
+# This is a generated script that tries to set up all the necessary
+# variables for a vanilla-installation of Vfork in FreeBSD or
+# Ubuntu. Adapt this script to your needs.
+#
+# One way to make sure that this script is executed whenever you use a
+# bash-shell is to copy this file to your home directory and add
+#
+# source ~/.vfork_env
+#
+# to the end of .bashrc.
+
+# Set up the path to let us execute the commands of Vfork.
+export PATH=BINDIR:${PATH}
+
+# Add the location of the main Vfork jar-file to the CLASSPATH.
+export CLASSPATH=${CLASSPATH}:JARDIR/vfork.jar
+
+# Add the location of the native libraries to the library variables.
+export LIBRARY_PATH=LIBDIR:${LIBRARY_PATH}
+export LD_LIBRARY_PATH=LIBDIR:${LD_LIBRARY_PATH}
+
+# Add the location of the JGMPMEE jar-file to the CLASSPATH.
+export CLASSPATH=${CLASSPATH}:JARDIR/jgmpmee.jar
+
+# Add the location of the JECN jar-file to the CLASSPATH.
+export CLASSPATH=${CLASSPATH}:JARDIR/jecn.jar

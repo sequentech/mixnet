@@ -1,0 +1,321 @@
+\NeedsTeXFormat{LaTeX2e}[95/06/01]
+\ProvidesPackage{vtm}
+
+\RequirePackage{times}
+\RequirePackage{amsthm}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+
+\RequirePackage{mathrsfs}
+\RequirePackage{latexsym}
+\RequirePackage{url}
+\RequirePackage{environ}
+\RequirePackage{xspace}
+\RequirePackage{listings}
+\RequirePackage{setspace}
+\RequirePackage{color}
+\RequirePackage{mathabx}
+
+% Security parameters
+\newcommand{\secp}{n}
+\newcommand{\secpv}{\secp_v}
+\newcommand{\secpr}{\secp_r}
+\newcommand{\secpe}{{\secp_e}}
+\newcommand{\secps}{{\secp_s}}
+
+\newcommand{\deci}[1]{\mathsf{deci}(#1)}
+
+% Names
+\newcommand{\elgamal}{El~Gamal\xspace}
+\newcommand{\veri}{Vfork\xspace}
+
+% Encoding used for pseudo-code strings, names of files, etc.
+\newcommand{\encoding}[1]{\textsf{#1}}
+
+% Encoding used for hexadecimal strings.
+\newcommand{\hex}[1]{\texttt{#1}}
+
+% Encoding used for code.
+\newcommand{\code}[1]{\texttt{#1}}
+
+% Encoding used for XML.
+\newcommand{\xmlfontsize}{\fontsize{9.5}{11}\selectfont}
+\newcommand{\xml}[1]{\texttt{\xmlfontsize#1}}
+
+% Boolean values.
+\newcommand{\True}{\mathit{true}}
+\newcommand{\False}{\mathit{false}}
+
+% Parameter used to generate file names.
+\newcommand{\param}[1]{\langle#1\rangle}
+
+% File containing a byte tree.
+\newcommand{\btfilei}[2]{\encoding{#1#2.bt}}
+
+% Separating space used to improve presentation of hexadecimal
+% strings.
+\newcommand{\cut}{\hspace{1.5pt}}
+\newcommand{\cutt}{\cut\cut}
+
+% Verdicts of verification algorithms.
+\newcommand{\accept}{\textbf{accept}\xspace}
+\newcommand{\reject}{\textbf{reject}\xspace}
+
+% Maximal number of ciphertexts.
+\newcommand{\PNmax}{\PN_{0}}
+
+% Actual number of ciphertexts.
+\newcommand{\PN}{N}
+
+% Number of mix-servers
+\newcommand{\Mk}{k}
+
+% Threshold number of mix-servers.
+\newcommand{\thres}{\lambda}
+
+% Intermediate list of ciphertexts.
+\newcommand{\List}[1]{L_{#1}}
+
+% Generic proof.
+\newcommand{\proofC}[1]{\tau_{#1}}
+\newcommand{\proofR}[1]{\sigma_{#1}}
+
+% Permutation commitment.
+\newcommand{\permcomm}{u}
+\newcommand{\permcommj}[1]{\permcomm_{#1}}
+\newcommand{\permcommji}[2]{\permcomm_{#1,#2}}
+\newcommand{\permcommjip}[1]{\permcomm_{#1}}
+
+% Proof of a shuffle.
+\newcommand{\posproofC}[1]{\proofC{#1}^{\mathit{pos}}}
+\newcommand{\posproofR}[1]{\proofR{#1}^{\mathit{pos}}}
+
+% Boolean array indicating which components to keep.
+\newcommand{\keeplistj}[1]{t_{#1}}
+\newcommand{\keeplistji}[2]{t_{#1,#2}}
+
+% Shrunk permutation commitment.
+\newcommand{\spermcommj}[1]{u_{#1}}
+\newcommand{\spermcommji}[2]{u_{#1,#2}}
+
+% Commitment-consistent proof of a shuffle.
+\newcommand{\ccposproofC}[1]{\proofC{#1}^{\mathit{ccpos}}}
+\newcommand{\ccposproofR}[1]{\proofR{#1}^{\mathit{ccpos}}}
+
+% Decryption factors
+\newcommand{\decrfact}{f}
+\newcommand{\decrfactj}[1]{\decrfact_{#1}}
+\newcommand{\decrfactji}[2]{\decrfact_{#1,#2}}
+\newcommand{\decrfactjip}[1]{\decrfact_{#1}}
+
+% Proof of correctness of decryption factors.
+\newcommand{\dproofC}[1]{\proofC{#1}^{\mathit{dec}}}
+\newcommand{\dproofR}[1]{\proofR{#1}^{\mathit{dec}}}
+
+% Byte tree encoding of input.
+\newcommand{\bt}[1]{\overline{#1}}%\encoding{bt(#1)}}
+
+% Byte trees
+\newcommand{\nbytes}[2]{\encoding{bytes}_{#1}(#2)}
+\newcommand{\bytes}[1]{\encoding{bytes}(#1)}
+\newcommand{\leaf}[1]{\encoding{leaf}(#1)}
+\newcommand{\node}[1]{\encoding{node}(#1)}
+
+% Conversion to hexadecimal string.
+\newcommand{\tohex}[1]{\encoding{hex}(#1)}
+
+% Convert string to integer.
+\newcommand{\inte}[1]{\encoding{int}(#1)}
+
+% Marshal objects with their class.
+\newcommand{\marshal}[1]{\encoding{marshal}(#1)}
+\newcommand{\unmarshal}[1]{\encoding{unmarshal}(#1)}
+
+% Cryptographic functions.
+\newcommand{\Hashfunction}{\encoding{Hashfunction}}
+\renewcommand{\hash}{H}
+\newcommand{\outlen}[1]{\encoding{outlen}(#1)}
+
+\newcommand{\PRG}{\encoding{PRG}}
+\newcommand{\prg}{\mathit{PRG}}
+\newcommand{\seedlen}[1]{\encoding{seedlen}(#1)}
+
+\newcommand{\RandomOracle}{\encoding{RandomOracle}}
+\newcommand{\RO}{\mathit{RO}}
+
+% Protocol info
+\newcommand{\ProtocolInfo}{\encoding{ProtocolInfo}}
+\newcommand{\field}[2]{#1[#2]}
+
+% Modular group.
+\newcommand{\ModPGroup}{\encoding{ModPGroup}}
+
+% Integer interval.
+\newcommand{\INT}[1]{[0,2^{#1}-1]}
+
+% Groups and fields
+\newcommand{\G}[1]{G_{#1}}
+\newcommand{\Gq}{\G{q}}
+\newcommand{\random}[2]{#1.\encoding{randomArray}(#2)}
+
+\newcommand{\p}{p}
+\newcommand{\q}{q}
+
+\newcommand{\x}{x}
+\newcommand{\y}{y}
+\newcommand{\xj}[1]{\x_{#1}}
+\newcommand{\yj}[1]{\y_{#1}}
+
+\newcommand{\g}{g}
+\newcommand{\h}{h}
+\newcommand{\gi}[1]{\g_{#1}}
+\newcommand{\hi}[1]{\h_{#1}}
+
+% Mathematical notation.
+\newcommand{\zed}{\mathbb{Z}}
+\newcommand{\zedq}{\zed_{q}}
+\newcommand{\perm}{\pi}
+\newcommand{\permj}[1]{\perm_{#1}}
+\newcommand{\ipi}{\pi^{-1}}
+
+% Set of permutations
+\newcommand{\permset}[1]{\mathbb{S}_{#1}}
+
+% Prover and verifier
+\newcommand{\V}{\mathcal{V}}
+\renewcommand{\P}{\mathcal{P}}
+
+% Cryptosystem.
+\newcommand{\Enc}{\textsf{Enc}}
+\newcommand{\Dec}{\textsf{Dec}}
+\newcommand{\PDec}{\textsf{PDec}}
+\newcommand{\TDec}{\textsf{TDec}}
+
+\newcommand{\RSpace}{\mathcal{R}}
+\newcommand{\MSpace}{\mathcal{M}}
+\newcommand{\CSpace}{\mathcal{C}}
+
+% Public and private keys
+\newcommand{\pk}{\mathit{pk}}
+\newcommand{\sk}{\mathit{sk}}
+
+\newcommand{\pkj}[1]{\pk_{#1}}
+\newcommand{\skj}[1]{\sk_{#1}}
+
+% Messages.
+\newcommand{\mess}{m}
+\newcommand{\messj}[1]{\mess_{#1}}
+\newcommand{\messi}[1]{\mess_{#1}}
+
+% Randomness.
+\newcommand{\rand}{r}
+\newcommand{\randj}[1]{\rand_{#1}}
+\newcommand{\randji}[2]{\rand_{#1,#2}}
+
+\newcommand{\sand}{s}
+\newcommand{\sandi}[1]{s_{#1}}
+
+% Generic ciphertexts.
+\newcommand{\ciph}{w}
+\newcommand{\ciphi}[1]{\ciph_{#1}}
+\newcommand{\ciphj}[1]{\ciph_{#1}}
+\newcommand{\ciphji}[2]{\ciph_{#1,#2}}
+\newcommand{\ciphjip}[1]{\ciph_{#1}}
+
+\newcommand{\uciph}{u}
+\newcommand{\vciph}{v}
+
+\newcommand{\uciphi}[1]{u_{#1}}
+\newcommand{\vciphi}[1]{v_{#1}}
+
+
+
+% A nice frame.
+\newcommand{\expFrame}[1]{
+\medskip
+\hspace*{-5.5mm}\fbox{\parbox{13.85cm}{\vspace*{-2mm}
+{#1}
+\vspace*{-2mm}}}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% commenting/cooperation macros
+% \newcommand{\mnote}[1]{\marginpar{\scriptsize\it
+%             \begin{minipage}[t]{2.0cm}
+%               \raggedright #1
+%             \end{minipage}}}
+
+%\newcommand{\mnote}[1]{} % No margin notes
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% General formatting %%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Environments
+\theoremstyle{plain}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}[lemma]{Corollary}
+\newtheorem{theorem}[lemma]{Theorem}
+\newtheorem{hypothesis}[lemma]{Hypothesis}
+\newtheorem{claim}[lemma]{Claim}
+\newtheorem{proposition}[lemma]{Proposition}
+\newtheorem{conjecture}[lemma]{Conjecture}
+
+\theoremstyle{definition}
+\newtheorem{definition}[lemma]{Definition}
+\newtheorem{algorithm}[lemma]{Algorithm}
+\newtheorem{functionality}[lemma]{Functionality}
+\newtheorem{protocol}[lemma]{Protocol}
+\newtheorem{remark}[lemma]{Remark}
+\newtheorem{construction}[lemma]{Construction}
+
+
+\theoremstyle{remark}
+\newtheorem{example}[lemma]{Example}
+
+
+% Robust referencing.
+\newcommand{\foot}[1]{Footnote~\ref{foot:#1}}
+\newcommand{\prot}[1]{Protocol~\ref{prot:#1}}
+\newcommand{\proc}[1]{Procedure~\ref{proc:#1}}
+\newcommand{\expe}[1]{Experiment~\ref{expe:#1}}
+\newcommand{\step}[1]{Step~\ref{step:#1}}
+\newcommand{\poin}[1]{Point~\ref{poin:#1}}
+\newcommand{\sect}[1]{Section~\ref{sect:#1}}
+\newcommand{\listref}[1]{Listing~\ref{list:#1}}
+\newcommand{\app}[1]{Appendix~\ref{sect:#1}}
+\newcommand{\prop}[1]{Proposition~\ref{prop:#1}}
+\newcommand{\lem}[1]{Lemma~\ref{lem:#1}}
+\newcommand{\eq}[1]{Equation~\ref{eq:#1}}
+\newcommand{\ineq}[1]{Inequality~\ref{ineq:#1}}
+\newcommand{\func}[1]{Functionality~\ref{func:#1}}
+\newcommand{\algo}[1]{Algorithm~\ref{algo:#1}}
+\newcommand{\theo}[1]{Theorem~\ref{theo:#1}}
+\newcommand{\exam}[1]{Example~\ref{exam:#1}}
+\newcommand{\tabl}[1]{Table~\ref{tabl:#1}}
+
+
+\newcommand{\vog}{\code{vog}\xspace}
+\newcommand{\vmn}{\code{vmn}\xspace}
+\newcommand{\vmni}{\code{vmni}\xspace}
+\newcommand{\vmnv}{\code{vmnv}\xspace}
+\newcommand{\vmnd}{\code{vmnd}\xspace}
+
+\newcommand{\niceboxcomm}[1]{
+\begin{center}
+\fbox{
+\begin{minipage}{.96\linewidth}
+#1
+\end{minipage}
+}
+\end{center}
+}
+
+\NewEnviron{nicebox}{\niceboxcomm{\BODY}}
+
+\newcommand{\TODO}[1]{\textbf{TODO(#1)}}
+
+\newcommand{\WARNING}[1]{{\Large \textbf{\textsf{WARNING! #1}}}}

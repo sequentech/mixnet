@@ -1,0 +1,41 @@
+\contentsline {section}{\numberline {1}Introduction}{1}
+\contentsline {paragraph}{Are you simply looking for an example?}{1}
+\contentsline {section}{\numberline {2}Info File Generator}{1}
+\contentsline {subsection}{\numberline {2.1}Basic Usage}{1}
+\contentsline {paragraph}{Computing Digests of Info Files.}{2}
+\contentsline {subsection}{\numberline {2.2}Execution in a Directory}{2}
+\contentsline {subsection}{\numberline {2.3}Additional Configuration Options$^\bigast $}{3}
+\contentsline {paragraph}{Running Multiple Mix-servers on a Single Computer.}{3}
+\contentsline {paragraph}{Secure Source of Randomness.}{4}
+\contentsline {paragraph}{Mix-Net Interface.}{4}
+\contentsline {paragraph}{Roles of the Mix-servers.}{4}
+\contentsline {section}{\numberline {3}Mix-Net}{4}
+\contentsline {subsection}{\numberline {3.1}Basic Usage}{4}
+\contentsline {subsection}{\numberline {3.2}Resetting Securely}{5}
+\contentsline {subsection}{\numberline {3.3}Execution in a Directory}{6}
+\contentsline {paragraph}{Securely Resetting.}{6}
+\contentsline {section}{\numberline {4}Interfaces to the Mix-Net}{6}
+\contentsline {subsection}{\numberline {4.1}Native Interface}{7}
+\contentsline {subsection}{\numberline {4.2}Raw Interface}{7}
+\contentsline {subsection}{\numberline {4.3}Helios Interface}{7}
+\contentsline {subsection}{\numberline {4.4}Custom Interface$^\bigast $}{7}
+\contentsline {section}{\numberline {5}Object Generator}{8}
+\contentsline {subsection}{\numberline {5.1}Listing and Generating Objects}{8}
+\contentsline {paragraph}{Browse Library.}{8}
+\contentsline {paragraph}{Generate Object.}{8}
+\contentsline {subsection}{\numberline {5.2}Initializing the Random Source}{9}
+\contentsline {subsection}{\numberline {5.3}Custom Objects$^\bigast $}{10}
+\contentsline {section}{\numberline {6}Universally Verifiable Proof of Correctness}{10}
+\contentsline {subsection}{\numberline {6.1}The Vfork\xspace Mix-Net Verifier}{10}
+\contentsline {subsection}{\numberline {6.2}Independent Stand-alone Mix-Net Verifier$^\bigast $}{11}
+\contentsline {section}{\numberline {7}Demonstrator}{11}
+\contentsline {paragraph}{Concrete Example.}{11}
+\contentsline {section}{\numberline {8}Troubleshooting}{11}
+\contentsline {section}{\numberline {9}Acknowledgments}{11}
+\contentsline {section}{\numberline {A}Commands for an Execution with Three Mix-servers}{12}
+\contentsline {section}{\numberline {B}Byte Trees}{14}
+\contentsline {subsection}{\numberline {B.1}Definition}{14}
+\contentsline {subsection}{\numberline {B.2}Representation as an Array of Bytes}{14}
+\contentsline {subsection}{\numberline {B.3}Backus-Naur Grammar.}{15}
+\contentsline {section}{\numberline {C}Representations of Groups and Group Elements}{15}
+\contentsline {paragraph}{Marshalling Groups.}{16}

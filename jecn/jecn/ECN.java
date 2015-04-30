@@ -2,7 +2,7 @@
  *
  * Copyright 2011 Douglas Wikström
  *
- * This file is part of a package for Verificatum that provides native
+ * This file is part of a package for Vfork that provides native
  * elliptic curve code (ECN).
  *
  * ECN is free software: you can redistribute it and/or modify it

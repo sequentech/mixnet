@@ -70,7 +70,7 @@ export C_INCLUDE_PATH=\${JDK_PATHS}:\${C_INCLUDE_PATH}
 # guarantees that GMP is installed as well.
 AC_ARG_ENABLE([check_gmpmee],
      [  --disable-check_gmpmee    Skip checking that GMPMEE is installed (only for maintainers who know what they are doing).],
-     [],[AC_CHECK_LIB(gmpmee, gmpmee_spowm_init, , [AC_MSG_ERROR(["GNU MP Modular Exponentiation Extension library not found, see http://www.verificatum.org/."])]) AC_CHECK_HEADERS([gmpmee.h], , [AC_MSG_ERROR(["GNU MP Modular Exponentiation Extension header not found, see http://www.verificatum.org/."])])])
+     [],[AC_CHECK_LIB(gmpmee, gmpmee_spowm_init, , [AC_MSG_ERROR(["GNU MP Modular Exponentiation Extension library not found, see http://www.vfork.org/."])]) AC_CHECK_HEADERS([gmpmee.h], , [AC_MSG_ERROR(["GNU MP Modular Exponentiation Extension header not found, see http://www.vfork.org/."])])])
      AM_CONDITIONAL([CHECK_GMPMEE], [test x$check_gmpmee = xtrue])
 
 # Checks for typedefs, structures, and compiler characteristics.

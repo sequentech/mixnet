@@ -17,7 +17,7 @@
 # License along with JGMPMEE.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-SUBDIRS = . gmpmee jgmpmee jecn verificatum
+SUBDIRS = . gmpmee jgmpmee jecn vfork
 
 dist_noinst_DATA = .version.m4 checkinstall lazysetup
 
@@ -25,19 +25,19 @@ dist_noinst_DATA = .version.m4 checkinstall lazysetup
 
 
 # We set up variables such that JGMPMEE can find the GMPMEE library,
-# and Verificatum can find the JGMPMEE jar-file.
+# and Vfork can find the JGMPMEE jar-file.
 PWD := $(shell pwd)
 export C_INCLUDE_PATH := $(C_INCLUDE_PATH):$(PWD)/gmpmee:$(PWD)/jecn
 export LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(PWD)/gmpmee/.libs:$(PWD)/jgmpmee/native/.libs:$(PWD)/jecn/native/.libs
-export CLASSPATH := $(PWD)/jgmpmee/jgmpmee.jar:$(PWD)/jecn/jecn.jar:.:$(CLASSPATH):$(PWD)/verificatum/verificatum.jar
+export CLASSPATH := $(PWD)/jgmpmee/jgmpmee.jar:$(PWD)/jecn/jecn.jar:.:$(CLASSPATH):$(PWD)/vfork/vfork.jar
 
 
-# The .verificatum_env file attempts to set all the necessary
+# The .vfork_env file attempts to set all the necessary
 # environment variables.
-all-local: .verificatum_env
-.verificatum_env:
-	$(MAKE) -C verificatum .verificatum_env
-	cp verificatum/.verificatum_env .
+all-local: .vfork_env
+.vfork_env:
+	$(MAKE) -C vfork .vfork_env
+	cp vfork/.vfork_env .
 
 doc: .doc.stamp
 .doc.stamp:
@@ -50,14 +50,14 @@ doc: .doc.stamp
 	$(MAKE) -C jecn doc
 	mkdir -p doc/jecn
 	cp -R jecn/doc/* doc/jecn
-	$(MAKE) -C verificatum doc
-	mkdir -p doc/verificatum
-	cp -R verificatum/doc/* doc/verificatum
-	cp -R verificatum/doc/.verificatum_env doc/verificatum 
+	$(MAKE) -C vfork doc
+	mkdir -p doc/vfork
+	cp -R vfork/doc/* doc/vfork
+	cp -R vfork/doc/.vfork_env doc/vfork 
 	@touch .doc.stamp
 
 clean-local:
-	rm -f .verificatum_env
+	rm -f .vfork_env
 	rm -rf doc
 	rm -f .doc.stamp
 
@@ -65,4 +65,4 @@ cleandoc: clean-local
 	$(MAKE) -C gmpmee cleandoc
 	$(MAKE) -C jgmpmee cleandoc
 	$(MAKE) -C jecn cleandoc
-	$(MAKE) -C verificatum cleandoc
+	$(MAKE) -C vfork cleandoc
