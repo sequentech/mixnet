@@ -1,0 +1,39 @@
+SPDXID: "SPDXRef-DOCUMENT"
+spdxVersion: "SPDX-2.2"
+creationInfo:
+  created: "2021-07-21T10:10:00Z"
+  creators:
+  - "Organization: Agora Voting SL."
+  - "Person: Eduardo Robles"
+  licenseListVersion: "3.9"
+name: "vfork-20.4.0"
+dataLicense: "CC0-1.0"
+documentNamespace: "http://nvotes.com/spdxdocs/spdx-document-vfork-e74bc880-4ffd-4aca-b60d-30aa92daac53"
+documentDescribes:
+- "SPDXRef-Package-vfork"
+packages:
+- SPDXID: "SPDXRef-Package-vfork"
+  summary: "nVotes MixNet, a fork of Verificatum MixNet."
+  copyrightText: "Copyright 2008-2021 Douglas Wikstrom and Agora Voting SL"
+  downloadLocation: "git+https://github.com/agoravoting/vfork.git@4e009f303c8378797e432fdb48fe3d0f6c6b0ed3"
+  filesAnalyzed: false
+  homepage: "https://github.com/agoravoting/vfork"
+  licenseConcluded:  "NOASSERTION"
+  licenseDeclared: "GPL-3.0-only"
+  name: "vfork"
+  versionInfo: "20.4.0"
+- SPDXID: "SPDXRef-Package-libgmp"
+  description: "Multiprecision arithmetic library."
+  copyrightText: "Copyright (c) 1991 - 2021, Steve M. Robbins <smr@debian.org>, Philipp Matthias Hahn <pmhahn@debian.org>"
+  downloadLocation: "https://gmplib.org/download/gmp/gmp-6.2.0.tar.lz"
+  filesAnalyzed: false
+  homepage: "https://gmplib.org/"
+  licenseConcluded: "NOASSERTION"
+  licenseDeclared: "LGPL-3.0-only"
+  name: "libgmp"
+  packageFileName: "./"
+  versionInfo: "6.2.0"
+relationships:
+- spdxElementId: "SPDXRef-Package-vfork"
+  relatedSpdxElement: "SPDXRef-Package-libgmp"
+  relationshipType: "DEPENDS_ON"
