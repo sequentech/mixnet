@@ -1,12 +1,12 @@
 SPDXID: "SPDXRef-DOCUMENT"
 spdxVersion: "SPDX-2.2"
 creationInfo:
-  created: "2021-07-21T10:10:00Z"
+  created: "2021-11-26T19:14:02Z"
   creators:
   - "Organization: Agora Voting SL."
   - "Person: Eduardo Robles"
   licenseListVersion: "3.9"
-name: "vfork-20.4.0"
+name: "vfork-master"
 dataLicense: "CC0-1.0"
 documentNamespace: "http://nvotes.com/spdxdocs/spdx-document-vfork-e74bc880-4ffd-4aca-b60d-30aa92daac53"
 documentDescribes:
