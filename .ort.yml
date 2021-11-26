@@ -1,7 +1,7 @@
 ---
 resolutions:
   rule_violations:
-  - message: "The package SpdxDocumentFile::vfork:20.4.0 has the declared ScanCode copyleft catalogized license GPL-3.0-only."
+  - message: "The package SpdxDocumentFile::vfork:.* has the declared ScanCode copyleft catalogized license GPL-3.0-only."
     reason: "LICENSE_ACQUIRED_EXCEPTION"
     comment: "The project is open source so it's normal that it's set as such."
 
