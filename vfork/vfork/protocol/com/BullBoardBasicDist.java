@@ -182,7 +182,7 @@ public abstract class BullBoardBasicDist extends BullBoardBasic {
         if (!running) {
 
             log.info("Starting http server.");
-            httpServer = new SimpleHTTPServer(http_dir, httpl, backLog);
+            httpServer = new SimpleHTTPServer(http_dir, "0.0.0.0", httpl.getPort(), backLog);
             httpServer.start();
 
             running = true;
