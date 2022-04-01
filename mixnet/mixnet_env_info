@@ -1,0 +1,15 @@
+A script named .mixnet_env has been generated, which attempts to
+set all the necessary environment variables correctly. You probably
+want to copy this file to your home directory and make sure the
+appropriate init file sources this script. Using bash, this can be
+done as follows:
+
+    cp .mixnet_env ~/
+    printf '\nsource ~/.mixnet_env' >> ~/.bashrc
+    source ~/.mixnet_env
+
+Now, every time you start a new bash-shell the environment is
+hopefully set up correctly. You can check that you set up things
+correctly by executing:
+
+    ./checkinstall

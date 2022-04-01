@@ -30,7 +30,7 @@ import java.util.*;
  * Allows invoking the modular exponentiation, simultaneous modular
  * exponentiation routines, primality tests, and related routines of
  * the <a href="http://gmplib.org">Gnu Multiprecision Library
- * (GMP)</a>and <a href="http://www.vfork.org">GMPMEE</a> (a
+ * (GMP)</a>and <a href="http://www.mixnet.org">GMPMEE</a> (a
  * minor extension of GMP).
  *
  * <p>

@@ -1,0 +1,25 @@
+<html>
+<head>Demonstration</head>
+<body>
+
+This package gives a unified way to demonstrate cryptographic
+protocols. The main things that distinguishes a demonstration from a
+real execution are the following:
+
+<ol>
+
+<li> Each party is executed as a {@link java.lang.Runnable}. Thus, all
+parties are simulated locally within a single JVM.
+
+<li> The configuration files used by a party are typically generated
+automatically, based on the options provided to the demonstrator.
+
+</ol>
+
+To demonstrate an existing protocol, the programmer must implement the
+interface {@link mixnet.protocol.demo.DemoProtocolFactory}. This
+interface allows {@link mixnet.protocol.demo.Demo} to set up and
+execute a demonstration.
+
+</body>
+</html>
