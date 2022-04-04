@@ -248,18 +248,18 @@ java_files = $(shell find $(pkgpath) -name "*.java" \
 test_classes = $(shell find $(pkgpath) \
 | grep -E "\.java|\.magic" \
 | grep ".Test" | grep -v ".test." | grep -v "TestOpt" \
-| sed -e s£\\.java££g | sed -e s£\\.magic££g | sed -e s£/£\\.£g \
+| sed -e s/\\.java//g | sed -e s/\\.magic//g | sed -e "s/\//\\./g" \
 | grep $(JGMPMEEGREP) | grep $(HADOOPGREP) | tr "\n" " ")
 
 
 # Space separated list of all outer classes. Note that inner classes
 # do not appear here, but this is of no consequence, since we only use
-# these names to trigger the building rule below.
-class_files = $(shell echo $(java_files) | sed -e s£\\.java£\\.class£g | sed -e s£$(pkgpath)£$(JAVAROOT)/$(pkgpath)£g)
+# these names to trigger the building rule below. EDU DOS
+class_files = $(shell echo $(java_files) | sed -e "s/\\.java/\\.class/g" | sed -e "s/ $(pkgpath)/ $(JAVAROOT)\/$(pkgpath)/g" | sed -e "s/^$(pkgpath)/$(JAVAROOT)\/$(pkgpath)/g")
 
 # Resource text files that must be copied.
 txt_files_src = $(shell find $(pkgpath) -name "*.txt" | tr "\n" " ")
-txt_files := $(shell echo $(txt_files_src) | sed -e s£$(pkgpath)£$(JAVAROOT)/$(pkgpath)£g)
+txt_files := $(shell echo $(txt_files_src) | sed -e "s/ $(pkgpath)/ $(JAVAROOT)\/$(pkgpath)/g" | sed -e "s/^$(pkgpath)/$(JAVAROOT)\/$(pkgpath)/g")
 
 # FORK added vmnc
 # Executable wrappers.
