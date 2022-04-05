@@ -17,7 +17,7 @@
 # License along with JGMPMEE.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-SUBDIRS = . gmpmee jgmpmee jecn vfork
+SUBDIRS = . gmpmee jgmpmee jecn mixnet
 
 dist_noinst_DATA = .version.m4 checkinstall lazysetup
 
@@ -29,15 +29,15 @@ dist_noinst_DATA = .version.m4 checkinstall lazysetup
 PWD := $(shell pwd)
 export C_INCLUDE_PATH := $(C_INCLUDE_PATH):$(PWD)/gmpmee:$(PWD)/jecn
 export LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(PWD)/gmpmee/.libs:$(PWD)/jgmpmee/native/.libs:$(PWD)/jecn/native/.libs
-export CLASSPATH := $(PWD)/jgmpmee/jgmpmee.jar:$(PWD)/jecn/jecn.jar:.:$(CLASSPATH):$(PWD)/vfork/vfork.jar
+export CLASSPATH := $(PWD)/jgmpmee/jgmpmee.jar:$(PWD)/jecn/jecn.jar:.:$(CLASSPATH):$(PWD)/mixnet/mixnet.jar
 
 
-# The .vfork_env file attempts to set all the necessary
+# The .mixnet_env file attempts to set all the necessary
 # environment variables.
-all-local: .vfork_env
-.vfork_env:
-	$(MAKE) -C vfork .vfork_env
-	cp vfork/.vfork_env .
+all-local: .mixnet_env
+.mixnet_env:
+	$(MAKE) -C mixnet .mixnet_env
+	cp mixnet/.mixnet_env .
 
 doc: .doc.stamp
 .doc.stamp:
@@ -50,14 +50,14 @@ doc: .doc.stamp
 	$(MAKE) -C jecn doc
 	mkdir -p doc/jecn
 	cp -R jecn/doc/* doc/jecn
-	$(MAKE) -C vfork doc
-	mkdir -p doc/vfork
-	cp -R vfork/doc/* doc/vfork
-	cp -R vfork/doc/.vfork_env doc/vfork 
+	$(MAKE) -C mixnet doc
+	mkdir -p doc/mixnet
+	cp -R mixnet/doc/* doc/mixnet
+	cp -R mixnet/doc/.mixnet_env doc/mixnet 
 	@touch .doc.stamp
 
 clean-local:
-	rm -f .vfork_env
+	rm -f .mixnet_env
 	rm -rf doc
 	rm -f .doc.stamp
 
@@ -65,4 +65,4 @@ cleandoc: clean-local
 	$(MAKE) -C gmpmee cleandoc
 	$(MAKE) -C jgmpmee cleandoc
 	$(MAKE) -C jecn cleandoc
-	$(MAKE) -C vfork cleandoc
+	$(MAKE) -C mixnet cleandoc

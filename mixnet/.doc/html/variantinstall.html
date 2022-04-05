@@ -1,0 +1,259 @@
+
+
+<html>
+
+  <head>
+    <title>Vfork</title>
+    <link rel="shortcut icon" href="mixnet.ico">
+    <link rel="stylesheet" href="mixnet.css">
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <style type="text/css"> td {padding-left:8pt; padding-right:8pt;}</style>
+    <style type="text/css"> th {padding-left:8pt; padding-right:8pt;}</style>
+  </head>
+
+
+  <hr>
+
+  <h1><font size="+4">Extended Installation</font></h1>
+
+  <hr>
+
+  To extend your installation, please follow the instructions below
+  and then execute Step 2-3 of the <a href="install.html">basic
+  installation instructions</a>.
+
+  <h2>(Optional) Build and install native code.</h2>
+
+  <p>
+    If you want to compile Vfork with support for native modular
+    exponentiation (and similar operations) using
+    the <a href="http://www.gmplib.org">GNU Multiple Precision
+    Arithmetic Library (GMP)</a>, and the
+    extension <a href="http://www.mixnet.com/gmpmee/index.html">GMP Modular Exponentiation
+    Extension (GMPMEE)</a>, and with <a href="http://www.mixnet.com/jecn/index.html">elliptic curve
+    native (JECN)</a>, then you must do the following.
+
+    <ol>
+
+    <li><b>Install the needed building tools.</b>
+    <p>
+      <table bgcolor=lightgrey>
+	<tr><td>
+	    <code>
+<pre>
+  sudo apt-get install m4 autoconf libtool
+</pre>
+	    </code>
+	  </td>
+	</tr>
+      </table>
+    </p>
+
+    <li> <b>Install GMP.</b>
+      <p>
+	To correctly build GMP and make use of its amazing speed, you
+	should use both <code>make check</code> and <code>make
+	tune</code> in the <code>tune</code>-subdirectory as outlined
+	below.
+      </p>
+      <p>
+	<table bgcolor=lightgrey>
+	  <tr><td>
+	      <code >
+<pre>
+  # Fetch the GMP source.
+  wget ftp://ftp.gmplib.org/pub/gmp-5.0.2/gmp-5.0.2.tar.gz
+  tar xvfz gmp-5.0.2.tar.gz
+  cd gmp-5.0.2
+  
+  # Standard GNU build
+  ./configure
+  make
+  make check
+  
+  # Tune GMP to run as fast as possible.
+  cd tune/
+  make tune
+  cd -
+  
+  # Make a new clean tuned build.
+  make clean
+  ./configure
+  make
+  make check
+  
+  # Install
+  sudo make install
+</pre>
+	      </code>
+	    </td>
+	  </tr>
+	</table>
+      </p>
+
+    <li> <b>Install GMPMEE, JGMPMEE, JECN, and Vfork.</b>
+      <p>
+	To build and install GMPMEE, JGMPMEE, JECN, and Vfork,
+	we download and install the meta package containing the
+	subpackages GMPMEE, JGMPMEE, and JECN.
+      </p>
+      <p>
+	<table bgcolor=lightgrey>
+	  <tr><td>
+	      <code>
+<pre>
+  wget http://www.mixnet.com/download/mixnet-full-1.0.7.tar.gz
+  tar xvf mixnet-full-1.0.7.tar.gz
+  cd mixnet-full-1.0.7
+  ./configure
+  make
+  sudo make install
+</pre>
+	      </code>
+	    </td>
+	  </tr>
+	</table>
+      </p>
+      <p>
+	It is <i>possible</i> to
+	install <a href="http://www.mixnet.com/gmpmee/index.html">GMPMEE</a>
+	and <a href="http://www.mixnet.com/jgmpmee/index.html">JGMPMEE</a> separately and then install
+	Vfork
+	from <a href="http://www.mixnet.com/download/mixnet-1.0.7.tar.gz">mixnet-1.0.7.tar.gz</a>,
+	but it is easier to build and install all three packages
+	directly as above.
+      </p>
+
+    </ol>
+
+<hr>
+
+    <h1>Troubleshooting</h1>
+
+    <ul>
+
+      <li><b>Install Oracle's Java 6 JDK in Ubuntu.</b>
+	<p>
+	  If you have not installed any virtual machine, you need to
+	  do this. We are using Oracle's (Sun's) Java 6 JDK, which is
+	  not part of the standard Ubuntu distribution, but we can add
+	  Sun as a "Lucid partner" and install it in the normal
+	  way. Vfork should work with other virtual machines,
+	  but we have not tried.
+	</p>
+	<p>
+	  <table bgcolor=lightgrey>
+	    <tr><td>
+		<code >
+<pre>
+  sudo add-apt-repository "deb http://archive.canonical.com/ lucid partner"
+  sudo apt-get update
+  sudo apt-get install sun-java6-jdk
+</pre>
+		</code>
+	      </td>
+	    </tr>
+	  </table>
+	</p>
+
+      <li><b>Memory requirements.</b>
+	<p>
+	  If you encounter the error below (here
+	  using <code>vmn</code> as an example) it means that you do
+	  not have sufficient memory to create the virtual machine.
+	</p>
+	<p>
+	  <table bgcolor=lightgrey>
+	    <tr><td>
+		<code >
+<pre>
+  $ vmn
+  Error occurred during initialization of VM
+  Could not reserve enough space for object heap
+  Could not create the Java virtual machine.
+</pre>
+		</code>
+	      </td>
+	    </tr>
+	  </table>
+	</p>
+
+
+      <li><b>When in doubt, use <code>make distclean</code>.</b>
+	<p>
+	  If you first execute <code>./configure</code> and then later
+	  decide to execute <code>./configure
+	  --prefix=myinstalldir</code> to install in a local
+	  directory, you may encounter the error below. To avoid this
+	  problem, simply execute <code>make distclean</code> and then
+	  run <code>./configure --prefix=myinstalldir</code> again
+	  with the install directory of your choice.
+	</p>
+	<p>
+	  <table bgcolor=lightgrey>
+	    <tr><td>
+		<code >
+<pre>
+libtool: install: error: cannot install `libjgmpmee.la' to a directory not ending in /usr/local/lib 
+</pre>
+		</code>
+	      </td>
+	    </tr>
+	  </table>
+	</p>
+
+
+      <li> <b>Make sure that you use GNU-make.</b>
+	<p>
+	  Make sure that you use <code>gmake</code>, and not some old
+	  version of <code>make</code>, or you may encounter the
+	  following, or some other interesting type of error.
+	</p>
+	<p>
+	  <table bgcolor=lightgrey>
+	    <tr><td>
+		<code >
+<pre>
+Making install in mixnet
+make: don't know how to make %:. Stop
+*** Error code 1
+</pre>
+		</code>
+	      </td>
+	    </tr>
+	  </table>
+	</p>
+
+
+    <li><b>Libtool with 32-bit Ubuntu may fail.</b>
+      <p>
+	If we build native support as explained above on a 64-bit
+	platform, then <code>libtool</code> will build the
+	library <code>libjgmpmee.so</code> and link dynamically with
+	the newly built <code>libgmpmee.so</code> in the sibling
+	directory <code>gmpmee</code>. When
+	installed, <code>libjgmpmee.so</code> is
+	correctly <em>relinked</em> to instead link with
+	the <em>installed</em> copy of <code>libgmpmee.so</code>. This
+	is possible, since <code>libtool</code> knows where the
+	libraries will be installed (from the <code>-rpath</code>
+	switch).
+    </p>
+    <p>
+      Unfortunately, <code>libtool</code> fails to do this on some
+      32-bit platforms, and quite possibly on some 64-bit platforms as
+      well. If this happens, then you need to build and install each
+      subpackage separately, and in the
+      order: <code>gmpmee</code>, <code>jgmpmee</code>,
+      and <code>mixnet</code>. Then no secondary relinking is
+      needed.
+    </p>
+
+    </ul>
+
+<hr>
+
+Copyright 2008 2009 2010 2011 2012 Douglas Wikström <br>
+
+</body>
+</html>

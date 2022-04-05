@@ -2,7 +2,7 @@
                        VFORK (FULL)
 
 This is a meta-package that builds and installs GMPMEE, JGMPMEE, and
-Vfork. Please follow the instructions of vfork/README, but
+Vfork. Please follow the instructions of mixnet/README, but
 execute the commands in this directory. This will install everything
 you need.
 
@@ -13,7 +13,7 @@ separately and in the order GMPMEE, JGMPMEE, and Vfork.
 
 Vfork is a fork of Verificatum. Verificatum AB
 (http://verificatum.com) currently maintains a more updated, though
-not libre software, version of verificatum. Currently, Agora Voting
+not libre software, version of verificatum. Currently, Sequent Tech
 maintains Vfork, which is a fork of the LGPL version of verificatum.
 
    ##########################################################

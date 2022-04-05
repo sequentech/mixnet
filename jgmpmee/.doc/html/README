@@ -21,7 +21,7 @@ essentially provides a wrapper of the functionality implemented in C
 on top of GMP using Java Native Interface (JNI).
 
 Building has only been tested with GMP 4.2.4 or later. You also need
-to build and install the GMPMEE package (found at www.vfork.com)
+to build and install the GMPMEE package (found at www.mixnet.com)
 before building this package. Then LIBRARY_PATH must point to
 libgmp.la and libgmpmee.a and C_INCLUDE_PATH must point to gmp.h and
 gmpmee.h. This is usually the case automatically after installing GMP

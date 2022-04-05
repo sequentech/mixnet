@@ -21,14 +21,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([vfork-full], [m4_esyscmd([m4 .version.m4])], [dog@csc.kth.se])
+AC_INIT([mixnet-full], [m4_esyscmd([m4 .version.m4])], [dog@csc.kth.se])
 AC_CANONICAL_SYSTEM # Must appear before AM_INIT_AUTOMAKE
 AM_INIT_AUTOMAKE([tar-ustar -Wall -Werror -Wno-portability])
 
 # Avoid complaints about jgmpmee not being installed.
 ac_configure_args="$ac_configure_args --enable-jgmpmee --disable-check_gmpmee --disable-check_jgmpmee --enable-jecn --disable-check_jecn"
 
-AC_CONFIG_SUBDIRS([gmpmee jgmpmee jecn vfork])
+AC_CONFIG_SUBDIRS([gmpmee jgmpmee jecn mixnet])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

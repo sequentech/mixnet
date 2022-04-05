@@ -1,0 +1,225 @@
+
+<!-- ATTENTION! WE STRONGLY ADVICE AGAINST EDITING THIS FILE!
+     
+     This is a protocol information file. It contains all the 
+     parameters of a protocol session as agreed by all parties.
+     
+     Each party must hold an identical copy of this file. DO NOT 
+     UNDER ANY CIRCUMSTANCES EDIT THIS FILE after you and the 
+     administrators of the other parties have agreed on its content.
+     If you do, then there are no security guarantees.
+     
+     If the Fiat-Shamir heuristic is used, then DO NOT EDIT THIS 
+     FILE UNDER ANY CIRCUMSTANCES! Any Fiat-Shamir proof of 
+     correctness computed before this file was changed will be 
+     rejected after the change. This can not be corrected without 
+     access to the original version of this file! -->
+
+<protocol>
+
+   <!-- Protocol version for which this protocol info is intended. -->
+   <version>0.1</version>
+
+   <!-- Session identifier of this protocol execution. This must be 
+        globally unique for all executions of all protocols. -->
+   <sid>SID</sid>
+
+   <!-- Name of this protocol execution. This is a short descriptive 
+        name. -->
+   <name>Swedish Election</name>
+
+   <!-- Description of this protocol execution. This is a longer 
+        description than the name. -->
+   <descr></descr>
+
+   <!-- Number of parties. -->
+   <nopart>3</nopart>
+
+   <!-- Number of parties needed to violate privacy. This must at 
+        least be majority. -->
+   <thres>2</thres>
+
+   <!-- Group over which the protocol is executed. An instance of 
+        mixnet.arithm.PGroup. -->
+   <pgroup>ModPGroup(safe-prime modulus=2*order+1. order bit-length = 512
+)::0000000002010000001c766572696669636174756d2e61726974686d2e4d6f64504772
+6f757000000000040100000041014354c848a190b7b5fbddcd07bed36e59af5a50cc5966b
+202bba0959ccc42061a2f468f87fa436451bd48d5cb333c0bb0aca763193e70c725495455
+a99939276f010000004100a1aa642450c85bdafdeee683df69b72cd7ad28662cb359015dd
+04ace6621030d17a347c3fd21b228dea46ae5999e05d85653b18c9f386392a4aa2ad4cc9c
+93b701000000410132027413c1464af9b3ebe05f40059902857843365887f3e084e973dfd
+3da198697724ac422dfce4728c2baa07760b5eae2d709bd7ff4f79d4e71fc9c2d37e26701
+0000000400000001</pgroup>
+
+   <!-- Number of ciphertexts shuffled in parallel. -->
+   <width>1</width>
+
+   <!-- Interface that defines how to communicate with the mix-net. 
+        Possible values are "raw", "native", "helios", and "tvs", or 
+        the name of a subclass of mixnet.protocol.mixnet.
+        MixNetElGamalInterface. See the user manual for more 
+        information on interfaces. -->
+   <inter>native</inter>
+
+   <!-- Maximal number of ciphertexts for which precomputation is 
+        performed. If this is set to zero, then it is assumed that 
+        precomputation is not performed as a separate phase, i.e., it 
+        defaults to the number of submitted ciphertexts during mixing. 
+        -->
+   <maxciph>10000</maxciph>
+
+   <!-- Decides statistical error in distribution. -->
+   <statdist>100</statdist>
+
+   <!-- Bit length of challenges in interactive proofs. -->
+   <cbitlen>100</cbitlen>
+
+   <!-- Bit length of challenges in non-interactive random-oracle 
+        proofs. -->
+   <cbitlenro>200</cbitlenro>
+
+   <!-- Bit length of each component in random vectors used for 
+        batching. -->
+   <vbitlen>100</vbitlen>
+
+   <!-- Bit length of each component in random vectors used for 
+        batching in non-interactive random-oracle proofs. -->
+   <vbitlenro>200</vbitlenro>
+
+   <!-- Pseudo random generator used to derive random vectors from 
+        jointly generated seeds. This can be one of the strings "SHA-
+        256", "SHA-384", or "SHA-512", in which case mixnet.
+        crypto.PRGHeuristic is instantiated based on this 
+        hashfunction, or it can be an instance of mixnet.crypto.
+        PRG. -->
+   <prg>SHA-256</prg>
+
+   <!-- Hashfunction used to implement random oracles. It can be one 
+        of the strings "SHA-256", "SHA-384", or "SHA-512", in which 
+        case mixnet.crypto.HashfunctionHeuristic is is 
+        instantiated, or an instance of mixnet.crypto.
+        Hashfunction. Random oracles with various output lengths are 
+        then implemented, using the given hashfunction, in mixnet.
+        crypto.RandomOracle.
+        WARNING! Do not change the default unless you know exactly 
+        what you are doing. -->
+   <rohash>SHA-256</rohash>
+
+   <!-- Determines if the proofs of correctness of an execution are 
+        interactive or non-interactive ("interactive" or 
+        "noninteractive"). -->
+   <corr>noninteractive</corr>
+
+   <party>
+
+      <!-- Sorting attribute used to sort parties with respect to their 
+           roles in the protocol. This is used to assign roles in 
+           protocols where different parties play different roles. -->
+      <srtbyrole>anyrole</srtbyrole>
+
+      <!-- Name of party. -->
+      <name>Party1</name>
+
+      <!-- Description of party. -->
+      <pdescr></pdescr>
+
+      <!-- Public signature key (instance of crypto.SignaturePKey). -->
+      <pkey>mixnet.crypto.SignaturePKeyHeuristic(RSA, bitlength=2048
+)::00000000020100000029766572696669636174756d2e63727970746f2e5369676e6174
+757265504b657948657572697374696300000000020100000004000008000100000126308
+20122300d06092a864886f70d01010105000382010f003082010a0282010100a60c4934ff
+f6b7a7dc50ec6a7f99bad0df62862b4c5f94e09b27ef71ccab1db011323e63caf0996deb7
+ea4a904267e68284871a767a3b8df328b936ff69499534e14c1713b1bcbd3a142961dafc3
+606f3b9b166128b2646c1085e388b830bb8d9fed72e2f9ca44c73822823e9c5104d656dcc
+d975ad038050b46a388c27078f05ffdf8024d2f3332438ec712561dad9f9e4b817c39212b
+dae83249ee119e5beba3726dff5bb9b83de44cf99666258a68ae300cf480867110ec29576
+8d5a83618e978ae532d0eb3806a622c57cf58fee0ce1275f56a1cbf0c9eac1dbf475ec872
+48f29858d7e9a008fd8d4204449bc4d39716d5797bba2ec19736c366f0bcb62d020301000
+1</pkey>
+
+      <!-- URL to our HTTP server. -->
+      <http>http://mybox1.mydomain1.com:8080</http>
+
+      <!-- Socket address given as <hostname>:<port> to our hint server. 
+           A hint server is a simple UDP server that reduces latency and 
+           traffic on the HTTP servers. -->
+      <hint>mybox1.mydomain1.com:4040</hint>
+
+   </party>
+
+   <party>
+
+      <!-- Sorting attribute used to sort parties with respect to their 
+           roles in the protocol. This is used to assign roles in 
+           protocols where different parties play different roles. -->
+      <srtbyrole>anyrole</srtbyrole>
+
+      <!-- Name of party. -->
+      <name>Party2</name>
+
+      <!-- Description of party. -->
+      <pdescr></pdescr>
+
+      <!-- Public signature key (instance of crypto.SignaturePKey). -->
+      <pkey>mixnet.crypto.SignaturePKeyHeuristic(RSA, bitlength=2048
+)::00000000020100000029766572696669636174756d2e63727970746f2e5369676e6174
+757265504b657948657572697374696300000000020100000004000008000100000126308
+20122300d06092a864886f70d01010105000382010f003082010a0282010100bc7264e6f2
+e75ac5e5db3b1b4211355459e18fc5a00d07d34991735e972b7f3fb25c04d5c126cad5fef
+21b9f5e9b80490e8072dac707f52b0c8de25d35bbf9e60186b1ed26fd6aaa820a6f4a22ad
+2bb519300933daafa1433f3657c13ac7136c646f3feae2675ecaddb0664b7471dd620af65
+530cd4d910a101e5a173360f33bb4bd2cc14240810b5047bff5eae886887a143797d6aa2c
+c768764ea70ddd42799dcb42105511d758812bd56bd2948c4898abea03feb89ed5e53f581
+15702c17dc33d535cb5a73a649493a1d7a52fac1122773470b9c5870d6639cf0f7ff06ca7
+573775d60c208b53fec49a37e5dc98a2bc8474e6b16478165e8add68bbbf509b020301000
+1</pkey>
+
+      <!-- URL to our HTTP server. -->
+      <http>http://mybox2.mydomain2.com:8080</http>
+
+      <!-- Socket address given as <hostname>:<port> to our hint server. 
+           A hint server is a simple UDP server that reduces latency and 
+           traffic on the HTTP servers. -->
+      <hint>mybox2.mydomain2.com:4040</hint>
+
+   </party>
+
+   <party>
+
+      <!-- Sorting attribute used to sort parties with respect to their 
+           roles in the protocol. This is used to assign roles in 
+           protocols where different parties play different roles. -->
+      <srtbyrole>anyrole</srtbyrole>
+
+      <!-- Name of party. -->
+      <name>Party3</name>
+
+      <!-- Description of party. -->
+      <pdescr></pdescr>
+
+      <!-- Public signature key (instance of crypto.SignaturePKey). -->
+      <pkey>mixnet.crypto.SignaturePKeyHeuristic(RSA, bitlength=2048
+)::00000000020100000029766572696669636174756d2e63727970746f2e5369676e6174
+757265504b657948657572697374696300000000020100000004000008000100000126308
+20122300d06092a864886f70d01010105000382010f003082010a028201010086e99acd4c
+48873c7cd002f5cfd5087d9ea85c1802ea058e54f66010c568411ce4e2b62da41ccbc12eb
+085c2a6db04186f901acf85f9ed9ba25f8b2297d9cc25518806f71f91774f39051ce02bda
+9be111c7ddda9bb124043466646d3c5a357654509b9b34190bc07660daa09d0d8373113d8
+34f9a3b161e93f199be26d934228ee2abb1c1c9a77f8063d03662847f128a733902687902
+69fa7b242880db10464b4be055d0192c19ccd101c7d6e83f43935a99436850ebf282a58d5
+3071067bfd7d6652bf1605856143a36b6fffac5babbf423c611dd3ae7e07a1dfc6b031082
+b33f50854d288ebfb82dd152155b62445d7877604c3811f0c2a015ed9bdeef29020301000
+1</pkey>
+
+      <!-- URL to our HTTP server. -->
+      <http>http://mybox3.mydomain3.com:8080</http>
+
+      <!-- Socket address given as <hostname>:<port> to our hint server. 
+           A hint server is a simple UDP server that reduces latency and 
+           traffic on the HTTP servers. -->
+      <hint>mybox3.mydomain3.com:4040</hint>
+
+   </party>
+
+</protocol>
+

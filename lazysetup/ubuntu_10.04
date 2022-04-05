@@ -46,14 +46,14 @@ fi
 ./configure --enable-jgmpmee --enable-jecn
 
 # Make corresponding installation script.
-make .vfork_env
-source .vfork_env
+make .mixnet_env
+source .mixnet_env
 
 # Copy environment script and let .bashrc source it.
-cp .vfork_env ~/
+cp .mixnet_env ~/
 echo "" >> ~/.bashrc
-echo "# Added by vfork"
-echo "source ~/.vfork_env" >> ~/.bashrc
+echo "# Added by mixnet"
+echo "source ~/.mixnet_env" >> ~/.bashrc
 
 # Make and install Vfork
 make
@@ -64,9 +64,9 @@ vog -rndinit RandomDevice /dev/urandom
 
 # Instruct user to run demo.
 echo ""
-echo "You may now run the mix-net demo in the vfork/demo/mixnet"
+echo "You may now run the mix-net demo in the mixnet/demo/mixnet"
 echo "subdirectory by executing the following commands."
 echo ""
-echo "     source ~/.vfork_env; cd vfork/demo/mixnet";
+echo "     source ~/.mixnet_env; cd mixnet/demo/mixnet";
 echo "     ./demo"
 echo ""

@@ -1,10 +1,10 @@
 ---
 resolutions:
   rule_violations:
-  - message: "The package SpdxDocumentFile::vfork:.* has the declared ScanCode copyleft catalogized license GPL-3.0-only."
+  - message: "The package SpdxDocumentFile::mixnet:.* has the declared ScanCode copyleft catalogized license GPL-3.0-only."
     reason: "LICENSE_ACQUIRED_EXCEPTION"
     comment: "The project is open source so it's normal that it's set as such."
 
   - message: "The package SpdxDocumentFile::libgmp:.* has the declared ScanCode copyleft-limited categorized license LGPL-3.0-only."
     reason: "DYNAMIC_LINKAGE_EXCEPTION"
-    comment: "This is not a problem as vfork remains and will remain open source with an LGPL-compatible license. Also, the linkage to libgmp happens in a small sub-library of vfork that is afterwards linked dynamicly so it wouldn't be a problem."
+    comment: "This is not a problem as mixnet remains and will remain open source with an LGPL-compatible license. Also, the linkage to libgmp happens in a small sub-library of mixnet that is afterwards linked dynamicly so it wouldn't be a problem."
