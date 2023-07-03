@@ -1,7 +1,7 @@
 SPDXID: "SPDXRef-DOCUMENT"
 spdxVersion: "SPDX-2.2"
 creationInfo:
-  created: "2021-11-26T19:14:02Z"
+  created: "2023-07-03T10:40:11Z"
   creators:
   - "Organization: Sequent Tech Inc."
   - "Person: Eduardo Robles"
@@ -15,13 +15,13 @@ packages:
 - SPDXID: "SPDXRef-Package-mixnet"
   summary: "Sequent MixNet, a fork of Verificatum MixNet."
   copyrightText: "Copyright 2008-2021 Douglas Wikstrom and Sequent Tech Inc"
-  downloadLocation: "git+https://github.com/sequentech/mixnet.git@master"
+  downloadLocation: "git+https://github.com/sequentech/mixnet.git@9.0.0"
   filesAnalyzed: false
   homepage: "https://github.com/sequentech/mixnet"
   licenseConcluded:  "NOASSERTION"
   licenseDeclared: "GPL-3.0-only"
   name: "mixnet"
-  versionInfo: "master"
+  versionInfo: "9.0.0"
 - SPDXID: "SPDXRef-Package-libgmp"
   description: "Multiprecision arithmetic library."
   copyrightText: "Copyright (c) 1991 - 2021, Steve M. Robbins <smr@debian.org>, Philipp Matthias Hahn <pmhahn@debian.org>"
