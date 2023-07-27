@@ -12,7 +12,6 @@
     # to create containers
     pkgs.docker
 
-    pkgs.autotools
     pkgs.libffi
   ];
 
