@@ -6,7 +6,9 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
   outputs = inputs@{ flake-parts, ... }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
+    flake-parts.lib.mkFlake { inherit inputs; } (let
+      mixnetModule = (import ./mixnet-module.nix);
+      in {
       imports = [];
       systems = [ "x86_64-linux" ];
 
@@ -14,16 +16,12 @@
       # module parameters provide easy access to attributes of the same
       # system.
       perSystem = perSystemInputs@{ config, self', inputs', pkgs, system, lib, ... }:
-        let
-          mixnetModule = (import ./mixnet-package.nix);
-          mixnet = mixnetModule (perSystemInputs);
-        in {
-          packages = {
-            inherit mixnetModule;
-            inherit mixnet;
+        {
+          packages = rec {
+            mixnet = mixnetModule (perSystemInputs);
             default = mixnet;
           };
         };
         flake = {};
-    };
+    });
 }
