@@ -20,23 +20,27 @@
             version = "9.0.0";
             src = ./.;
 
-            nativeBuildInputs = [ pkgs.makeWrapper pkgs.autotools ];
-            buildInputs = [ pkgs.jdk8 ];
+            nativeBuildInputs = [
+              pkgs.makeWrapper
+              pkgs.python3Minimal
+              pkgs.gnum4
+              pkgs.tree
+            ];
+            buildInputs = [
+              pkgs.jdk8
+              pkgs.gmp
+            ];
 
             configureFlags = []; # [ "--enable-jgmpmee" "--enable-jecn" ];
 
             makeFlags = [ "JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8" ];
 
             installPhase = ''
-              ls -lah $out
               mkdir -p $out/bin
-              cp -r . $out/bin
-              wrapProgram $out/bin/mixnet \
-                --set JAVA_TOOL_OPTIONS "-Dfile.encoding=UTF8"
-            '';
-
-            fixupPhase = ''
-              find $out/bin -type f -executable -exec patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" {} \;
+              mkdir -p $out/share/java
+              cp -r mixnet/bin/* $out/bin
+              find . -name "*.jar" -exec cp {} $out/share/java \;
+              tree $out
             '';
           };
         in {
