@@ -9,9 +9,10 @@
       pkgs.gnum4
       pkgs.automake
       pkgs.autoconf
+      pkgs.jdk8
     ];
     buildInputs = [
-      pkgs.jdk8
+      pkgs.jre8
       pkgs.gmp
     ];
 
