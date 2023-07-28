@@ -32,19 +32,15 @@
 # 32-bit mode instead of 64-bit mode. It is not needed in Linux or
 # FreeBSD.
 
+set -eux -o pipefail
 
 # Extract the name of this shell script without its path.
 COMMAND_NAME=$0
 COMMAND_NAME=${COMMAND_NAME##*/}
 
-if [ x${VFORK_RANDOM_SOURCE} = x ]; then
-   VFORK_RANDOM_SOURCE=~/.mixnet_random_source
-fi
+VFORK_RANDOM_SOURCE="${VFORK_RANDOM_SOURCE:-~/.mixnet_random_source}"
+VFORK_RANDOM_SEED="${VFORK_RANDOM_SEED:-~/.mixnet_random_seed}"
 
-if [ x${VFORK_RANDOM_SEED} = x ]; then
-   VFORK_RANDOM_SEED=~/.mixnet_random_seed
-fi
- 
 # If you want to be able to list and generate instances of your own
 # classes, you should set VFORK_VOG to be a comma-separated list
 # of classnames. This allows this command to list and generate
@@ -52,17 +48,15 @@ fi
 # implements the
 # mixnet.ui.gen.Generator-interface. Alternatively, you can use
 # the -pkgs switch of this command.
-if [ x${VFORK_VOG} = x ]; then
-   VFORK_VOG=
-fi
+VFORK_VOG="${VFORK_VOG:-}"
 
-VFORK_VOG=${VFORK_VOG}:VFORK_VOG_BUILTIN
+VFORK_VOG="${VFORK_VOG}:VFORK_VOG_BUILTIN"
 
 java \
-JVM_DATAMODEL \
--Djava.security.egd=file:/dev/./urandom \
-mixnet.ui.gen.GeneratorTool \
-"$COMMAND_NAME" \
-"$VFORK_VOG" \
-"$VFORK_RANDOM_SOURCE" \
-"$VFORK_RANDOM_SEED" "$@"
+   JVM_DATAMODEL \
+   -Djava.security.egd=file:/dev/./urandom \
+   mixnet.ui.gen.GeneratorTool \
+   "$COMMAND_NAME" \
+   "$VFORK_VOG" \
+   "$VFORK_RANDOM_SOURCE" \
+   "$VFORK_RANDOM_SEED" "$@"
