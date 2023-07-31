@@ -35,13 +35,8 @@
       mkdir -p $out/lib
       find mixnet/bin -type f -not -name '*.src' -exec cp {} $out/bin \;
       find . -name "*.jar" -exec cp {} $out/share/java \;
-      find . -name "*.so" -exec cp {} $out/lib \;
-      patchelf --remove-rpath $out/lib/*.so;
-      for f in $(find $out/bin/ -type f); do
-        echo "wrapping '$f'"
-        wrapProgram "$f" \
-          --prefix LD_LIBRARY_PATH $out/lib:${pkgs.gmp}/lib;
-      done
+      find . -name "*.so*" -exec cp {} $out/lib \;
+      patchelf --remove-rpath $out/lib/*.so*;
       echo "edu-install-phase: stop"
     '';
     # TODO:
